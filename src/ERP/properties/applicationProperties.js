@@ -1,1 +1,1 @@
-export const API_URL = "http://localhost:8888"
+export const API_URL = "http://coolbook-product-service.herokuapp.com"
