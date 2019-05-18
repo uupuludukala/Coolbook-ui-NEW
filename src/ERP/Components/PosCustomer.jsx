@@ -6,7 +6,7 @@ class PosCustomer extends React.Component {
       <tr
         className="client-line"
         data-id="7"
-        onClick={() => this.props.setCustomerFuction(this.props.customer)}
+        onClick={() => this.props.selectCustomerFuction(this.props.customer)}
       >
         <td>
           {this.props.customer.firstName} {this.props.customer.lastName}

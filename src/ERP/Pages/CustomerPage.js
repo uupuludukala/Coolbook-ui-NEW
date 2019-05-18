@@ -13,18 +13,11 @@ import { API_URL } from "../properties/applicationProperties";
 import FormControl from "@material-ui/core/FormControl";
 import TextField from "@material-ui/core/TextField";
 import { withStyles } from "@material-ui/core/styles";
-
+import "../css/main.css";
 const styles = theme => ({
   root: {
     display: "flex",
     flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
   }
 });
 
@@ -180,55 +173,64 @@ class CustomerPage extends React.Component {
         id: "nicNumber",
         numeric: false,
         disablePadding: true,
-        label: "NIC Number"
+        label: "NIC Number",
+        display: true
       },
       {
         id: "firstName",
         numeric: false,
         disablePadding: true,
-        label: "First Name"
+        label: "First Name",
+        display: true
       },
       {
         id: "lastName",
         numeric: false,
         disablePadding: true,
-        label: "Last Name"
+        label: "Last Name",
+        display: true
       },
       {
         id: "addressLine1",
         numeric: false,
         disablePadding: true,
-        label: "Address Line1"
+        label: "Address Line1",
+        display: true
       },
       {
         id: "addressLine2",
         numeric: false,
         disablePadding: true,
-        label: "Address Line2"
+        label: "Address Line2",
+        display: true
       },
       {
         id: "addressLine3",
         numeric: false,
         disablePadding: true,
-        label: "Address Line3"
+        label: "Address Line3",
+        display: true
       },
       {
         id: "mobileNumer",
         numeric: false,
         disablePadding: true,
-        label: "Mobile Numer"
+        label: "Mobile Numer",
+        display: true
       },
       {
         id: "homePhone",
         numeric: true,
         disablePadding: false,
-        label: "Home Phone"
+        label: "Home Phone",
+        display: true
       },
       {
         id: "creditLimit",
         numeric: true,
         disablePadding: false,
-        label: "Credit Limit"
+        label: "Credit Limit",
+        display: true
       }
     ];
     return (
@@ -241,7 +243,7 @@ class CustomerPage extends React.Component {
           <AddIcon />
         </Fab>
         <form autoComplete="off">
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="nicNumber"
@@ -257,7 +259,7 @@ class CustomerPage extends React.Component {
             />
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               type="number"
@@ -274,7 +276,7 @@ class CustomerPage extends React.Component {
             />
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               error={this.state.mobileNumerError}

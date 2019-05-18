@@ -13,6 +13,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import InvoiceItem from "../Components/InvoiceItem";
 import Backspace from "../../assets/img/backspace.png";
 import PosCustomerPage from "../Pages/PosCustomerPage";
+import PosPaymentPage from "./PosPaymentPage.jsx";
 
 const styles = theme => ({
   productColumn: {
@@ -62,9 +63,10 @@ class PosPage extends React.Component {
     selectedQuantity: "",
     isNumberPadQuantity: false,
     customerPageClass: "hide",
+    paymentPageClass: "hide",
     posPageClass: "show",
     isPOSOpen: true,
-    customer: "Customer",
+    customer: null,
     isCustomerSet: false,
     isPOSPage: true
   };
@@ -208,20 +210,32 @@ class PosPage extends React.Component {
   };
   openCustomerDialog = () => {
     this.setState({ isPOSPage: false });
-    this.setState({ customerPageClass: "show", posPageClass: "hide" });
+    this.setState({
+      customerPageClass: "show",
+      posPageClass: "hide",
+      paymentPageClass: "hide"
+    });
   };
   closeCustomerDialog = () => {
     this.setState({ isPOSPage: true });
     this.setState({ customerPageClass: "hide", posPageClass: "show" });
   };
+
+  openPaymentDialog = () => {
+    this.setState({ isPOSPage: false });
+    this.setState({ paymentPageClass: "show", posPageClass: "hide" });
+  };
+  closePaymentDialog = () => {
+    this.setState({ isPOSPage: true });
+    this.setState({ paymentPageClass: "hide", posPageClass: "show" });
+  };
   closePos = () => {
     this.setState({ isPOSOpen: false });
   };
 
-  setCustomer = (customer, isCustomerSet) => {
+  setCustomer = customer => {
     this.setState({
       customer: customer
-      // isCustomerSet: isCustomerSet
     });
   };
   render() {
@@ -252,26 +266,6 @@ class PosPage extends React.Component {
                   <div className="subwindow">
                     <div className="subwindow-container">
                       <div className="subwindow-container-fix screens">
-                        <div className="scale-screen screen oe_hidden">
-                          <div className="screen-content">
-                            <div className="top-content">
-                              <span className="button back">
-                                <i className="fa fa-angle-double-left" />
-                                Back
-                              </span>
-                              <h1 className="product-name">Unnamed Product</h1>
-                            </div>
-                            <div className="centered-content">
-                              <div className="weight js-weight">0.000 Kg</div>
-                              <div className="product-price">0.00 $/</div>
-                              <div className="computed-price">123.14 €</div>
-                              <div className="buy-product">
-                                Order
-                                <i className="fa fa-angle-double-right" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                         <div className="product-screen screen">
                           <div className="leftpane">
                             <div className="window">
@@ -316,7 +310,6 @@ class PosPage extends React.Component {
                               <div className="subwindow collapsed">
                                 <div className="subwindow-container">
                                   <div className="subwindow-container-fix pads">
-                                    <div className="control-buttons oe_hidden" />
                                     <div className="actionpad">
                                       <button
                                         className="button set-customer "
@@ -328,13 +321,16 @@ class PosPage extends React.Component {
                                           role="img"
                                           title="Customer"
                                         />
-                                        {this.state.customer.firstName != null
+                                        {this.state.customer != null
                                           ? this.state.customer.firstName +
                                             " " +
                                             this.state.customer.lastName
-                                          : this.state.customer}
+                                          : "Customer"}
                                       </button>
-                                      <button className="button pay">
+                                      <button
+                                        className="button pay"
+                                        onClick={this.openPaymentDialog}
+                                      >
                                         <div className="pay-circle">
                                           <i
                                             aria-label="Pay"
@@ -512,239 +508,6 @@ class PosPage extends React.Component {
                             </table>
                           </div>
                         </div>
-                        <div className="clientlist-screen screen oe_hidden">
-                          <div className="screen-content">
-                            <section className="top-content">
-                              <span className="button back">
-                                <i className="fa fa-angle-double-left" />
-                                Cancel
-                              </span>
-                              <span className="searchbox">
-                                <input placeholder="Search Customers" />
-                                <span className="search-clear" />
-                              </span>
-                              <span className="searchbox" />
-                              <span
-                                aria-label="Add a customer"
-                                className="button new-customer"
-                                role="img"
-                                title="Add a customer"
-                              >
-                                <i className="fa fa-user" />
-                                <i className="fa fa-plus" />
-                              </span>
-                              <span className="button next oe_hidden highlight">
-                                Select Customer
-                                <i className="fa fa-angle-double-right" />
-                              </span>
-                            </section>
-                            <section className="full-content">
-                              <div className="window">
-                                <section className="subwindow collapsed">
-                                  <div className="subwindow-container collapsed">
-                                    <div className="subwindow-container-fix client-details-contents" />
-                                  </div>
-                                </section>
-                                <section className="subwindow">
-                                  <div className="subwindow-container">
-                                    <div className="subwindow-container-fix touch-scrollable scrollable-y">
-                                      <table className="client-list">
-                                        <thead>
-                                          <tr>
-                                            <th>Name</th>
-                                            <th>Address</th>
-                                            <th>Phone</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody className="client-list-contents" />
-                                      </table>
-                                    </div>
-                                  </div>
-                                </section>
-                              </div>
-                            </section>
-                          </div>
-                        </div>
-                        <div className="receipt-screen screen oe_hidden">
-                          <div className="screen-content">
-                            <div className="top-content">
-                              <h1>
-                                Change:{" "}
-                                <span className="change-value">0.00</span>
-                              </h1>
-                              <span className="button next">
-                                Next Order
-                                <i className="fa fa-angle-double-right" />
-                              </span>
-                            </div>
-                            <div className="centered-content touch-scrollable">
-                              <div className="button print">
-                                <i className="fa fa-print" /> Print Receipt
-                              </div>
-                              <div className="pos-receipt-container" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="payment-screen screen oe_hidden">
-                          <div className="screen-content">
-                            <div className="top-content">
-                              <span className="button back">
-                                <i className="fa fa-angle-double-left" />
-                                Back
-                              </span>
-                              <h1>Payment</h1>
-                              <span className="button next">
-                                Validate
-                                <i className="fa fa-angle-double-right" />
-                              </span>
-                            </div>
-                            <div className="left-content pc40 touch-scrollable scrollable-y">
-                              <div className="paymentmethods-container">
-                                <div className="paymentmethods">
-                                  <div
-                                    className="button paymentmethod"
-                                    data-id="8"
-                                  >
-                                    Cash (SGD)
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="right-content pc60 touch-scrollable scrollable-y">
-                              <section className="paymentlines-container">
-                                <div className="paymentlines-empty">
-                                  <div className="total">0.00 $</div>
-                                  <div className="message">
-                                    Please select a payment method.
-                                  </div>
-                                </div>
-                              </section>
-
-                              <section className="payment-numpad">
-                                <div className="numpad">
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="1"
-                                  >
-                                    1
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="2"
-                                  >
-                                    2
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="3"
-                                  >
-                                    3
-                                  </button>
-                                  <button
-                                    className="mode-button"
-                                    data-action="+10"
-                                  >
-                                    +10
-                                  </button>
-                                  <br />
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="4"
-                                  >
-                                    4
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="5"
-                                  >
-                                    5
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="6"
-                                  >
-                                    6
-                                  </button>
-                                  <button
-                                    className="mode-button"
-                                    data-action="+20"
-                                  >
-                                    +20
-                                  </button>
-                                  <br />
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="7"
-                                  >
-                                    7
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="8"
-                                  >
-                                    8
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="9"
-                                  >
-                                    9
-                                  </button>
-                                  <button
-                                    className="mode-button"
-                                    data-action="+50"
-                                  >
-                                    +50
-                                  </button>
-                                  <br />
-                                  <button
-                                    className="input-button numpad-char"
-                                    data-action="CLEAR"
-                                  >
-                                    C
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="0"
-                                  >
-                                    0
-                                  </button>
-                                  <button
-                                    className="input-button number-char"
-                                    data-action="."
-                                  >
-                                    .
-                                  </button>
-                                  <button
-                                    className="input-button numpad-backspace"
-                                    data-action="BACKSPACE"
-                                  >
-                                    <img
-                                      alt="Backspace"
-                                      height="21"
-                                      src={Backspace}
-                                      width="24"
-                                    />
-                                  </button>
-                                </div>
-                              </section>
-
-                              <div className="payment-buttons">
-                                <div className="button js_set_customer">
-                                  <i
-                                    aria-label="Customer"
-                                    className="fa fa-user"
-                                    role="img"
-                                    title="Customer"
-                                  />
-                                  <span className="js_customer_name">
-                                    Customer
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -873,96 +636,6 @@ class PosPage extends React.Component {
                   </ul>
                   <p className="close_button">close</p>
                 </div>
-                <div className="debug-widget oe_hidden">
-                  <h1>Debug Window</h1>
-                  <div
-                    aria-label="Dismiss"
-                    className="toggle"
-                    role="img"
-                    title="Dismiss"
-                  >
-                    <i className="fa fa-times" />
-                  </div>
-                  <div className="content">
-                    <p className="category">Electronic Scale</p>
-                    <ul>
-                      <li>
-                        <input className="weight" type="text" />
-                      </li>
-                      <li className="button set_weight">Set Weight</li>
-                      <li className="button reset_weight">Reset</li>
-                    </ul>
-
-                    <p className="category">Barcode Scanner</p>
-                    <ul>
-                      <li>
-                        <input className="ean" type="text" />
-                      </li>
-                      <li className="button barcode">Scan</li>
-                      <li className="button custom_ean">Scan EAN-13</li>
-                    </ul>
-
-                    <p className="category">Orders</p>
-
-                    <ul>
-                      <li className="button delete_orders">
-                        Delete Paid Orders
-                      </li>
-                      <li className="button delete_unpaid_orders">
-                        Delete Unpaid Orders
-                      </li>
-                      <li className="button export_paid_orders">
-                        Export Paid Orders
-                      </li>
-                      <a>
-                        <li className="button download_paid_orders oe_hidden">
-                          Download Paid Orders
-                        </li>
-                      </a>
-                      <li className="button export_unpaid_orders">
-                        Export Unpaid Orders
-                      </li>
-                      <a>
-                        <li className="button download_unpaid_orders oe_hidden">
-                          Download Unpaid Orders
-                        </li>
-                      </a>
-                      <li
-                        className="button import_orders"
-                        style={{ position: "relative" }}
-                      >
-                        <input
-                          id=""
-                          style={{
-                            opacity: 0,
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            margin: 0,
-                            cursor: "pointer"
-                          }}
-                          type="file"
-                        />
-                      </li>
-                    </ul>
-
-                    <p className="category">Hardware Status</p>
-                    <ul>
-                      <li className="status weighing">Weighing</li>
-                      <li className="button display_refresh">
-                        Refresh Display
-                      </li>
-                    </ul>
-                    <p className="category">Hardware Events</p>
-                    <ul>
-                      <li className="event open_cashbox">Open Cashbox</li>
-                      <li className="event print_receipt">Print Receipt</li>
-                      <li className="event scale_read">Read Weighing Scale</li>
-                    </ul>
-                  </div>
-                </div>
               </div>
               <Dialog
                 open={this.state.isErrDlgOpen}
@@ -990,9 +663,17 @@ class PosPage extends React.Component {
             <div className={this.state.customerPageClass}>
               <PosCustomerPage
                 closeFunction={this.closeCustomerDialog}
-                isCustomerSet={this.state.isCustomerSet}
+                customer={this.state.customer}
                 setCustomerFunction={this.setCustomer}
-                selectedCustomerId={this.state.customer.id}
+              />
+            </div>
+            <div className={this.state.paymentPageClass}>
+              >
+              <PosPaymentPage
+                total={this.state.total}
+                closeFunction={this.closePaymentDialog}
+                customer={this.state.customer}
+                openCustomerPageFunction={this.openCustomerDialog}
               />
             </div>
           </div>

@@ -25,28 +25,30 @@ class EnhancedTableHead extends React.Component {
       <TableHead>
         <TableRow>
           {rows.map(
-            row => (
-              <TableCell
-                key={row.id}
-                align={row.numeric ? "right" : "left"}
-                padding={row.disablePadding ? "none" : "default"}
-                sortDirection={orderBy === row.id ? order : false}
-              >
-                <Tooltip
-                  title="Sort"
-                  placement={row.numeric ? "bottom-end" : "bottom-start"}
-                  enterDelay={300}
+            row =>
+              row.display && (
+                <TableCell
+                  key={row.id}
+                  // align={row.numeric ? "right" : "left"}
+                  align={"right"}
+                  padding={row.disablePadding ? "none" : "default"}
+                  sortDirection={orderBy === row.id ? order : false}
                 >
-                  <TableSortLabel
-                    active={orderBy === row.id}
-                    direction={order}
-                    onClick={this.createSortHandler(row.id)}
+                  <Tooltip
+                    title="Sort"
+                    placement={row.numeric ? "bottom-end" : "bottom-start"}
+                    enterDelay={300}
                   >
-                    {row.label}
-                  </TableSortLabel>
-                </Tooltip>
-              </TableCell>
-            ),
+                    <TableSortLabel
+                      active={orderBy === row.id}
+                      direction={order}
+                      onClick={this.createSortHandler(row.id)}
+                    >
+                      {row.label}
+                    </TableSortLabel>
+                  </Tooltip>
+                </TableCell>
+              ),
             this
           )}
           <TableCell>Action </TableCell>
@@ -151,15 +153,16 @@ class EnhancedTable extends React.Component {
                     key={n.id}
                     className="gridRaw"
                   >
-                    {Object.keys(n).map(
+                    {/* {Object.keys(n).map( */}
+                    {this.props.rows.map(
                       datarow =>
-                        datarow !== "id" && (
+                        datarow.display && (
                           <TableCell align="right">
-                            {typeof n[datarow] === "boolean"
-                              ? n[datarow]
+                            {typeof n[datarow.id] === "boolean"
+                              ? n[datarow.id]
                                 ? "Yes"
                                 : "No"
-                              : n[datarow]}{" "}
+                              : n[datarow.id]}{" "}
                           </TableCell>
                         ),
                       this

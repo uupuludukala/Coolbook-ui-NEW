@@ -19,18 +19,11 @@ import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import { withStyles } from "@material-ui/core/styles";
-
+import "../css/main.css";
 const styles = theme => ({
   root: {
     display: "flex",
     flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
   }
 });
 
@@ -204,42 +197,72 @@ class ProductPage extends React.Component {
         id: "productCode",
         numeric: false,
         disablePadding: true,
-        label: "Product Code"
+        label: "Product Code",
+        display: true
       },
       {
         id: "productName",
         numeric: false,
         disablePadding: true,
-        label: "Product Name"
+        label: "Product Name",
+        display: true
       },
       {
         id: "productType",
         numeric: false,
         disablePadding: true,
-        label: "Product Type"
+        label: "Product Type",
+        display: true
       },
       {
         id: "productCategory",
         numeric: false,
         disablePadding: true,
-        label: "Product Category"
+        label: "Product Category",
+        display: true
       },
-      { id: "barcode", numeric: false, disablePadding: true, label: "Barcode" },
+      {
+        id: "barcode",
+        numeric: false,
+        disablePadding: true,
+        label: "Barcode",
+        display: true
+      },
       {
         id: "salePrice",
         numeric: true,
         disablePadding: false,
-        label: "Sale Price"
+        label: "Sale Price",
+        display: true
       },
-      { id: "cost", numeric: true, disablePadding: false, label: "Cost" },
-      { id: "active", numeric: false, disablePadding: true, label: "Active" },
+      {
+        id: "cost",
+        numeric: true,
+        disablePadding: false,
+        label: "Cost",
+        display: true
+      },
+      {
+        id: "active",
+        numeric: false,
+        disablePadding: true,
+        label: "Active",
+        display: true
+      },
       {
         id: "quantity",
         numeric: true,
         disablePadding: false,
-        label: "Quantity"
+        label: "Quantity",
+        display: true
       },
-      { id: "Image", numeric: false, disablePadding: true, label: "Image" }
+      {
+        id: "imageUrl",
+        numeric: false,
+        disablePadding: true,
+        label: "Image",
+        display: false
+      }
     ];
     return (
       <div>
@@ -250,8 +273,9 @@ class ProductPage extends React.Component {
         >
           <AddIcon />
         </Fab>
-        <form autoComplete="off">
-          <FormControl className={classes.formControl}>
+        <div className="formContainer">
+          {/* <form autoComplete="off"> */}
+          <FormControl className="formControl">
             <FormControlLabel
               control={
                 <Switch
@@ -268,7 +292,7 @@ class ProductPage extends React.Component {
             />
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="barcode"
@@ -282,7 +306,7 @@ class ProductPage extends React.Component {
             />
           </FormControl>
 
-          <FormControl required className={classes.formControl}>
+          <FormControl required className="formControl">
             <InputLabel htmlFor="productCategory">Product Category</InputLabel>
             <Select
               value={this.state.productCategory}
@@ -298,7 +322,7 @@ class ProductPage extends React.Component {
               )}
             </Select>
           </FormControl>
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="productCode"
@@ -311,7 +335,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="productName"
@@ -324,7 +348,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
-          <FormControl required className={classes.formControl}>
+          <FormControl required className="formControl">
             <InputLabel htmlFor="productType">Product Type</InputLabel>
             <Select
               value={this.state.productType}
@@ -346,7 +370,8 @@ class ProductPage extends React.Component {
           >
             Search
           </Button>
-        </form>
+          {/* </form> */}
+        </div>
         {/* this.state.data.length > 0 && */}
         {
           <DataGrid

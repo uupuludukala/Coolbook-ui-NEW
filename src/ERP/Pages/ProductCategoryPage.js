@@ -16,7 +16,7 @@ import Select from "@material-ui/core/Select";
 import Input from "@material-ui/core/Input";
 import { withStyles } from "@material-ui/core/styles";
 import ProductCategoryForm from "../Forms/ProductCategoryForm";
-
+import "../css/main.css";
 const styles = theme => ({
   root: {
     display: "flex",
@@ -191,25 +191,29 @@ class ProductPage extends React.Component {
         id: "parentCategory",
         numeric: false,
         disablePadding: true,
-        label: "Parent Category Id"
+        label: "Parent Category Id",
+        display: true
       },
       {
         id: "parentCategoryCode",
         numeric: false,
         disablePadding: true,
-        label: "Parent Category Code"
+        label: "Parent Category Code",
+        display: true
       },
       {
         id: "productCatCode",
         numeric: false,
         disablePadding: true,
-        label: "Product Category  Code"
+        label: "Product Category  Code",
+        display: true
       },
       {
         id: "productCatName",
         numeric: false,
         disablePadding: true,
-        label: "Product Category Name"
+        label: "Product Category Name",
+        display: true
       }
     ];
     return (
@@ -222,7 +226,7 @@ class ProductPage extends React.Component {
           <AddIcon />
         </Fab>
         <form autoComplete="off">
-          <FormControl required className={classes.formControl}>
+          <FormControl required className="formControl">
             <InputLabel htmlFor="parentCategory">Parent Category</InputLabel>
             <Select
               value={this.state.parentCategory}
@@ -239,7 +243,7 @@ class ProductPage extends React.Component {
             </Select>
           </FormControl>
 
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="productCatCode"
@@ -253,7 +257,7 @@ class ProductPage extends React.Component {
             />
           </FormControl>
 
-          <FormControl className={classes.formControl}>
+          <FormControl className="formControl">
             <TextField
               required={true}
               name="productCatName"

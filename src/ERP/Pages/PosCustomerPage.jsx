@@ -4,6 +4,9 @@ import { withStyles } from "@material-ui/core/styles";
 import "../css/pos.css";
 import PosCustomer from "../Components/PosCustomer";
 import { API_URL } from "../properties/applicationProperties";
+import { CHANGE_CUSTOMER_LABEL } from "../properties/messageProperties";
+import { DESELECT_CUSTOMER_LABEL } from "../properties/messageProperties";
+import { SET_CUSTOMER_LABEL } from "../properties/messageProperties";
 
 const styles = theme => ({});
 class PosCustomerPage extends React.Component {
@@ -22,10 +25,7 @@ class PosCustomerPage extends React.Component {
   searchCustomer = event => {
     this.renderCustomer(event.target.value);
   };
-  setCustomer = customer => {
-    if (this.props.selectedCustomerId !== customer.id) {
-      this.setState({ setCustomerLabel: "Change Customer" });
-    }
+  selectCustomer = customer => {
     this.setState({
       nicNumber: customer.nicNumber,
       firstName: customer.firstName,
@@ -37,19 +37,31 @@ class PosCustomerPage extends React.Component {
       homePhone: customer.homePhone,
       creditLimit: customer.creditLimit,
       customer: customer,
-      isCustomerSelected: true,
-      setCustomerLabel: "Set Customer"
+      isCustomerSelected: true
+      // setCustomerLabel: "Set Customer"
     });
-  };
-  setCustomerToPos = () => {
-    if (this.props.isCustomerSet) {
-      this.props.setCustomerFunction("Customer", false);
-      this.setState({ isCustomerSelected: false });
-      this.props.closeFunction();
-    } else if (this.state.isCustomerSelected) {
-      this.props.setCustomerFunction(this.state.customer, true);
-      this.props.closeFunction();
+    if (this.props.customer != null && this.props.customer.id != customer.id) {
+      this.setState({
+        isSet: false,
+        setCustomerLabel: CHANGE_CUSTOMER_LABEL
+      });
+    } else if (this.props.customer != null) {
+      this.setState({
+        isSet: false,
+        setCustomerLabel: DESELECT_CUSTOMER_LABEL
+      });
+    } else {
+      this.setState({ isSet: false, setCustomerLabel: SET_CUSTOMER_LABEL });
     }
+  };
+
+  setCustomerToPos = () => {
+    if (this.state.isCustomerSelected && !this.state.isSet) {
+      this.props.setCustomerFunction(this.state.customer);
+    } else {
+      this.props.setCustomerFunction(null);
+    }
+    this.props.closeFunction();
   };
   renderCustomer = customerCode => {
     let searchList = [];
@@ -67,10 +79,11 @@ class PosCustomerPage extends React.Component {
             searchList.push(
               <PosCustomer
                 customer={rawData[index]}
-                setCustomerFuction={() => this.setCustomer(rawData[index])}
+                selectCustomerFuction={() =>
+                  this.selectCustomer(rawData[index])
+                }
               />
             );
-            console.log("Customer " + rawData[index]);
             return null;
           });
 
@@ -86,12 +99,18 @@ class PosCustomerPage extends React.Component {
       });
   };
 
-  render() {
-    let isCustomerSet = this.props.isCustomerSet;
-    if (isCustomerSet) {
-      this.setState({ setCustomerLabel: "Deselect Customer" });
+  componentWillReceiveProps() {
+    console.log("did mount Customer ", this.props.customer);
+    if (this.props.customer === null) {
+      this.setState({ isSet: false, setCustomerLabel: SET_CUSTOMER_LABEL });
+    } else {
+      this.setState({
+        isSet: true,
+        setCustomerLabel: DESELECT_CUSTOMER_LABEL
+      });
     }
-
+  }
+  render() {
     return (
       <div className="pos">
         <div className="pos-content">
@@ -119,6 +138,11 @@ class PosCustomerPage extends React.Component {
                         <span className="searchbox" />
 
                         <span
+                          style={{
+                            display: this.state.isCustomerSelected
+                              ? "block"
+                              : "none"
+                          }}
                           className="button next highlight"
                           onClick={this.setCustomerToPos}
                         >

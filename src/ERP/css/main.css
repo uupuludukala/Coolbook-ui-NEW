@@ -1,0 +1,11 @@
+.formControl {
+  width: 200px;
+  align-content: flex-start;
+  min-width: 100;
+  margin: 200px;
+}
+.formContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: "center";
+}
