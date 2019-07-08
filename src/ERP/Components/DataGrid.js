@@ -109,18 +109,22 @@ class EnhancedTable extends React.Component {
   };
 
   handleChangePage = (event, page) => {
-    this.props.getDataFunction(page);
+    //   console.log("Page is", page);
+
     this.setState({
-      page,
+      page: page,
       rowsPerPage: this.props.rowsPerPage,
       totalElements: this.props.totalElements,
       totalPages: this.props.totalPages,
       data: this.props.data
     });
+    this.props.getDataFunction(page, this.props.rowsPerPage);
   };
 
   handleChangeRowsPerPage = event => {
+    console.log("Page change called");
     this.setState({ rowsPerPage: event.target.value });
+    this.props.getDataFunction(this.state.page, event.target.value);
   };
 
   render() {
@@ -188,8 +192,8 @@ class EnhancedTable extends React.Component {
           rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
           component="div"
           count={totalElements}
-          rowsPerPage={rowsPerPage}
-          page={page}
+          rowsPerPage={this.state.rowsPerPage}
+          page={this.state.page}
           backIconButtonProps={{
             "aria-label": "Previous Page"
           }}

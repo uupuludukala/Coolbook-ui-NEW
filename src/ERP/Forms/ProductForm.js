@@ -2,18 +2,19 @@ import React from "react";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import Input from "@material-ui/core/Input";
-import InputLabel from "@material-ui/core/InputLabel";
 import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import Button from "@material-ui/core/Button";
 import { API_URL } from "../properties/applicationProperties";
-import Card from "@material-ui/core/Card";
-import CardActionArea from "@material-ui/core/CardActionArea";
+import MenuItem from "@material-ui/core/MenuItem";
 import "../css/pos.css";
-import CardMedia from "@material-ui/core/CardMedia";
+import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
+import {
+  ValidatorForm,
+  TextValidator,
+  SelectValidator
+} from "react-material-ui-form-validator";
 
 const styles = theme => ({
   root: {
@@ -40,8 +41,7 @@ class ProductForm extends React.Component {
   state = {
     ...this.props.formData,
     mode: this.props.mode,
-    productCategoryList: [],
-    productType: "#"
+    productCategoryList: []
   };
 
   handleChangeByName = name => event => {
@@ -57,157 +57,54 @@ class ProductForm extends React.Component {
       active: false,
       barcode: "",
       cost: 0,
-      productCategory: "#",
       productCode: "",
       productName: "",
-      productType: "#",
       quantity: 0,
       salePrice: 0
     });
   };
   submitform = () => {
-    if (this.validateForm()) {
-      const product = {
-        active: this.state.active,
-        barcode: this.state.barcode,
-        cost: this.state.cost,
-        productCategory: this.state.productCategory,
-        productCode: this.state.productCode,
-        productName: this.state.productName,
-        productType: this.state.productType,
-        quantity: this.state.quantity,
-        salePrice: this.state.salePrice,
-        imageUrl: this.state.productImageUrl
-      };
-      let requestMethod = this.state.mode === "Update" ? "PUT" : "POST";
-      fetch(
-        API_URL +
-          (this.state.mode === "Update"
-            ? "/saveProduct/" + this.state.id
-            : "/saveProduct"),
-        {
-          headers: { "Content-Type": "application/json" },
-          method: requestMethod,
-          body: JSON.stringify(product)
+    const product = {
+      active: this.state.active,
+      barcode: this.state.barcode,
+      cost: this.state.cost,
+      productCategory: this.state.productCategory,
+      productCode: this.state.productCode,
+      productName: this.state.productName,
+      productType: this.state.productType,
+      quantity: this.state.quantity,
+      salePrice: this.state.salePrice,
+      imageUrl: this.state.imageUrl
+    };
+    let requestMethod = this.state.mode === "Update" ? "PUT" : "POST";
+    fetch(
+      API_URL +
+        (this.state.mode === "Update"
+          ? "/saveProduct/" + this.state.id
+          : "/saveProduct"),
+      {
+        headers: { "Content-Type": "application/json" },
+        method: requestMethod,
+        body: JSON.stringify(product)
+      }
+    )
+      .then(response => {
+        if (response.status === 201 || response.status === 200) {
+          this.closeForm();
+          this.props.getDataFunction(0);
+          // this.clearForm();
+        } else {
+          console.log("Error Saving Data");
         }
-      )
-        .then(response => {
-          if (response.status === 201 || response.status === 200) {
-            this.closeForm();
-            this.props.getDataFunction(0);
-            // this.clearForm();
-          } else {
-            console.log("Error Saving Data");
-          }
-        })
-        .catch(error => {
-          console.log("error Saving Data catch" + error);
-        });
-    }
+      })
+      .catch(error => {
+        console.log("error Saving Data catch" + error);
+      });
   };
   closeForm = () => {
     this.props.closefunction();
   };
-  validateForm = () => {
-    let isValid = true;
-    if (this.state.barcode === "") {
-      this.setState({
-        barcodeError: true,
-        barcodeHelperText: "Bar code Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        barcodeError: false,
-        barcodeHelperText: ""
-      });
-    }
-    if (this.state.cost === "") {
-      this.setState({
-        costError: true,
-        costHelperText: "Cost Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        costError: false,
-        costHelperText: ""
-      });
-    }
-    if (this.state.productCategory === "#") {
-      this.setState({
-        productCategoryError: true,
-        productCategoryHelperText: "Product CategoryRequired"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        productCategoryError: false,
-        productCategoryHelperText: ""
-      });
-    }
-    if (this.state.productCode === "") {
-      this.setState({
-        productCodeError: true,
-        productCodeHelperText: "Product Code Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        productCodeError: false,
-        productCodeHelperText: ""
-      });
-    }
-    if (this.state.productName === "") {
-      this.setState({
-        productNameError: true,
-        productNameHelperText: "Product Name Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        productNameError: false,
-        productNameHelperText: ""
-      });
-    }
-    if (this.state.productType === "#") {
-      this.setState({
-        productTypeError: true,
-        productTypeHelperText: "Product Type Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        productTypeError: false,
-        productTypeHelperText: ""
-      });
-    }
-    if (this.state.quantity === "") {
-      this.setState({
-        quantityError: true,
-        quantityHelperText: "Quantity Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        quantityError: false,
-        quantityHelperText: ""
-      });
-    }
-    if (this.state.salePrice === "") {
-      this.setState({
-        salePriceError: true,
-        salePriceHelperText: "SalePrice Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        salePriceError: false,
-        salePriceHelperText: ""
-      });
-    }
-    return isValid;
-  };
+
   uploadFile = () => {
     console.log("File Upload Finction call");
     let file = document.getElementById("productImage").files[0];
@@ -227,19 +124,24 @@ class ProductForm extends React.Component {
       .then(dataRetrived => {
         console.log("dataRetrived", dataRetrived);
         this.setState({
-          productImageUrl: dataRetrived.fileDownloadUri
+          imageUrl: dataRetrived.fileDownloadUri
         });
       })
       .catch(error => {
         console.log("error Saving Data catch" + error);
       });
   };
+
   render() {
     const { classes } = this.props;
-
+    const { email } = this.state;
     return (
       <div>
-        <form autoComplete="off">
+        <ValidatorForm
+          ref="form"
+          onSubmit={this.submitform}
+          onError={errors => console.log(errors)}
+        >
           <div className="pos">
             <article
               className="product"
@@ -248,7 +150,7 @@ class ProductForm extends React.Component {
               tabIndex="0"
             >
               <div className="product-img">
-                <img alt="Product " src={this.state.productImageUrl} />
+                <img alt="Product " src={this.state.imageUrl} />
                 <span className="price-tag" />
               </div>
               <div className="product-name" id="article_product_2" />
@@ -280,35 +182,14 @@ class ProductForm extends React.Component {
             />
           </FormControl>
           <br />
-
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
+          <FormControl required className={classes.formControl}>
+            <TextValidator
               name="barcode"
               value={this.state.barcode}
               onChange={this.handleChange}
               label="Barcode"
-              error={this.state.barcodeError}
-              helperText={this.state.barcodeHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              type="number"
-              name="cost"
-              value={this.state.cost}
-              onChange={this.handleChange}
-              label="Cost"
-              error={this.state.costError}
-              helperText={this.state.costHelperText}
-              margin="dense"
+              validators={["required"]}
+              errorMessages={["Barcode Required"]}
               InputLabelProps={{
                 shrink: true
               }}
@@ -316,47 +197,62 @@ class ProductForm extends React.Component {
           </FormControl>
           <br />
           <FormControl required className={classes.formControl}>
-            <InputLabel htmlFor="productCategory">Product Category</InputLabel>
-            <Select
-              value={this.state.productCategory}
-              native
+            <TextValidator
+              type="number"
+              name="cost"
+              value={this.state.cost}
               onChange={this.handleChange}
-              error={this.state.productCategoryError}
-              helperText={this.state.productCategoryHelperText}
-              input={<Input name="productCategory" id="productCategory" />}
-            >
-              <option value="#">None</option>
-              {this.props.productCategoryList.map(
-                n => (
-                  <option value={n.id}>{n.productCatCode}</option>
-                ),
-                this
-              )}
-            </Select>
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.productCodeError}
-              helperText={this.state.productCodeHelperText}
-              name="productCode"
-              value={this.state.productCode}
-              onChange={this.handleChange}
-              label="Product Code"
-              margin="dense"
+              label="Cost"
+              validators={["required"]}
+              errorMessages={["Cost Required"]}
               InputLabelProps={{
                 shrink: true
               }}
             />
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.productNameError}
-              helperText={this.state.productNameHelperText}
+          <FormControl required className={classes.formControl}>
+            <SelectValidator
+              name="productCategory"
+              label="Product Category"
+              value={this.state.productCategory}
+              onChange={this.handleChange}
+              validators={["required"]}
+              errorMessages={["Product Category Required"]}
+              input={<Input name="productCategory" id="productCategory" />}
+              InputLabelProps={{
+                shrink: true
+              }}
+            >
+              <MenuItem value="0">All</MenuItem>
+              {this.props.productCategoryList.map(
+                n => (
+                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
+                ),
+                this
+              )}
+            </SelectValidator>
+          </FormControl>
+          <br />
+          <FormControl required className={classes.formControl}>
+            <TextValidator
+              name="productCode"
+              value={this.state.productCode}
+              onChange={this.handleChange}
+              label="Product Code"
+              validators={["required"]}
+              errorMessages={["Product Code Required"]}
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+          </FormControl>
+          <br />
+          <FormControl required className={classes.formControl}>
+            <TextValidator
               name="productName"
+              validators={["required"]}
+              errorMessages={["Product Name Required"]}
               value={this.state.productName}
               onChange={this.handleChange}
               label="Product Name"
@@ -368,27 +264,34 @@ class ProductForm extends React.Component {
           </FormControl>
           <br />
           <FormControl required className={classes.formControl}>
-            <InputLabel htmlFor="productType">Product Type</InputLabel>
-            <Select
+            <SelectValidator
+              label="Product Type"
+              name="productType"
+              validators={["required"]}
+              errorMessages={["Product Type Required"]}
               value={this.state.productType}
-              error={this.state.productTypeError}
-              helperText={this.state.productTypeHelperText}
               onChange={this.handleChange}
               input={<Input name="productType" id="productType" />}
+              InputLabelProps={{
+                shrink: true
+              }}
             >
-              <option value="#">None</option>
-              <option value="olivier">Olivier</option>
-              <option value="kevin">Kevin</option>
-            </Select>
+              <MenuItem value="0">All</MenuItem>
+              {PRODUCT_TYPE_LIST.map(
+                n => (
+                  <MenuItem value={n}>{n}</MenuItem>
+                ),
+                this
+              )}
+            </SelectValidator>
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.quantityError}
-              helperText={this.state.quantityHelperText}
+          <FormControl required className={classes.formControl}>
+            <TextValidator
               type="number"
               name="quantity"
+              validators={["required"]}
+              errorMessages={["Quantity Required"]}
               value={this.state.quantity}
               onChange={this.handleChange}
               label="Quantity"
@@ -399,13 +302,12 @@ class ProductForm extends React.Component {
             />
           </FormControl>
           <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.salePriceError}
-              helperText={this.state.salePriceHelperText}
+          <FormControl required className={classes.formControl}>
+            <TextValidator
               type="number"
               name="salePrice"
+              validators={["required"]}
+              errorMessages={["Sale Price Required"]}
               value={this.state.salePrice}
               onChange={this.handleChange}
               label="Sale Price"
@@ -416,22 +318,19 @@ class ProductForm extends React.Component {
             />
           </FormControl>
           <br />
-
-          {/* <Tooltip title="Save" aria-label="Add" >
-                        <Button variant="contained" color="primary" onClick={this.submitform}>Save</Button>
-                    </Tooltip>
-                    <Button variant="contained" color="primary" onClick={this.clearForm}>Clear</Button>
-                    <Button variant="contained" color="primary" onClick={this.closeForm}>Close</Button> */}
-          <Button onClick={this.submitform} color="primary">
+          <Button type="submit" color="primary">
             Save
           </Button>
+          {/* <Button onClick={this.submitform} color="primary">
+            Save
+          </Button> */}
           <Button onClick={this.clearForm} color="primary">
             Clear
           </Button>
           <Button onClick={this.closeForm} color="primary">
             Cancel
           </Button>
-        </form>
+        </ValidatorForm>
       </div>
     );
   }
