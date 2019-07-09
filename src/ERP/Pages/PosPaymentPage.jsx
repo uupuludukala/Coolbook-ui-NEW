@@ -1,9 +1,7 @@
 import React from "react";
-import ReactDOM from "react-dom";
+
 import { withStyles } from "@material-ui/core/styles";
 import "../css/pos.css";
-import PosCustomer from "../Components/PosCustomer";
-import { API_URL } from "../properties/applicationProperties";
 import Backspace from "../../assets/img/backspace.png";
 
 const styles = theme => ({});

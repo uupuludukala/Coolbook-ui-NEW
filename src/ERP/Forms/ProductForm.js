@@ -83,7 +83,10 @@ class ProductForm extends React.Component {
           ? "/saveProduct/" + this.state.id
           : "/saveProduct"),
       {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + window.localStorage.getItem("access_token")
+        },
         method: requestMethod,
         body: JSON.stringify(product)
       }
@@ -114,6 +117,7 @@ class ProductForm extends React.Component {
     fetch(API_URL + "/uploadFile", {
       headers: {
         // "Content-Type": "multipart/form-data"
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
       },
       method: "post",
       body: formData

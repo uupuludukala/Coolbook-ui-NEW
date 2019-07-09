@@ -61,7 +61,11 @@ class ProductPage extends React.Component {
   getProductCategory = page => {
     let searchParameters = this.getSearchParameters(page);
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllProductCategory?" + searchParameters)
+    fetch(API_URL + "/getAllProductCategory?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -117,7 +121,10 @@ class ProductPage extends React.Component {
   deleteProductCategory = () => {
     fetch(API_URL + "/deleteProductCategory/" + this.state.deleteItemId, {
       headers: { "Content-Type": "application/json" },
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
     })
       .then(response => {
         if (response.status === 200) {
@@ -159,7 +166,11 @@ class ProductPage extends React.Component {
   };
 
   getProductCategoryList = () => {
-    fetch(API_URL + "/getAllProductCategory")
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })

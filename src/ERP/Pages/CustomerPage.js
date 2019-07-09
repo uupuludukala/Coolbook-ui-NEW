@@ -65,7 +65,11 @@ class CustomerPage extends React.Component {
   getCustomer = page => {
     let searchParameters = this.getSearchParameters(page);
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllCustomer?" + searchParameters)
+    fetch(API_URL + "/getAllCustomer?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -121,7 +125,10 @@ class CustomerPage extends React.Component {
 
   deleteCustomer = () => {
     fetch(API_URL + "/deleteCustomer/" + this.state.deleteItemId, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      },
       method: "DELETE"
     })
       .then(response => {

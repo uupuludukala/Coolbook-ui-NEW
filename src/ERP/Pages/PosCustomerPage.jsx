@@ -66,7 +66,11 @@ class PosCustomerPage extends React.Component {
   renderCustomer = customerCode => {
     let searchList = [];
     ReactDOM.render("", document.getElementById("posCustomerList"));
-    fetch(API_URL + "/getAllCustomer?nicNumber=" + customerCode)
+    fetch(API_URL + "/getAllCustomer?nicNumber=" + customerCode, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })

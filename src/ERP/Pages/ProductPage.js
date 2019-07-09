@@ -61,7 +61,11 @@ class ProductPage extends React.Component {
     };
   }
   getProductCategory = () => {
-    fetch(API_URL + "/getAllProductCategory")
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -90,7 +94,11 @@ class ProductPage extends React.Component {
     let searchParameters = this.getSearchParameters(page, pageSize);
 
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllProduct?" + searchParameters)
+    fetch(API_URL + "/getAllProduct?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -150,7 +158,10 @@ class ProductPage extends React.Component {
 
   deleteProduct = () => {
     fetch(API_URL + "/deleteProduct/" + this.state.deleteItemId, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      },
       method: "DELETE"
     })
       .then(response => {

@@ -181,7 +181,11 @@ class PosPage extends React.Component {
     let searchList = [];
     ReactDOM.render("", document.getElementById("posSearchList"));
     console.log(productCode);
-    fetch(API_URL + "/getAllProduct?productCode=" + productCode)
+    fetch(API_URL + "/getAllProduct?productCode=" + productCode, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })

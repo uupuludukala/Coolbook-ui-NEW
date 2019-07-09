@@ -66,7 +66,10 @@ class ProductForm extends React.Component {
           ? "/updateProductCategory/" + this.state.id
           : "/saveProductCategory"),
       {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + window.localStorage.getItem("access_token")
+        },
         method: requestMethod,
         body: JSON.stringify(productCategory)
       }
