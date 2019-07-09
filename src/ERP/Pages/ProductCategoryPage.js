@@ -17,17 +17,12 @@ import Input from "@material-ui/core/Input";
 import { withStyles } from "@material-ui/core/styles";
 import ProductCategoryForm from "../Forms/ProductCategoryForm";
 import "../css/main.css";
+
+import MenuItem from "@material-ui/core/MenuItem";
 const styles = theme => ({
   root: {
     display: "flex",
     flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
   }
 });
 
@@ -35,11 +30,14 @@ class ProductPage extends React.Component {
   constructor(props) {
     const productCategory = {
       parentCategory: 0,
+      parentCategoryCode: "",
       productCatCode: "",
-      productCatName: ""
+      productCatName: "",
+      id: 0
     };
     super(props);
     this.state = {
+      parentCategory: 0,
       data: [],
       isOpen: false,
       mode: "",
@@ -47,7 +45,6 @@ class ProductPage extends React.Component {
       productCategory: productCategory,
       page: 0,
       isDltOpen: false,
-      parentCategory: 0,
       productCatCode: "",
       productCatName: "",
       productCategoryList: []
@@ -64,7 +61,11 @@ class ProductPage extends React.Component {
   getProductCategory = page => {
     let searchParameters = this.getSearchParameters(page);
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllProductCategory?" + searchParameters)
+    fetch(API_URL + "/getAllProductCategory?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -95,13 +96,13 @@ class ProductPage extends React.Component {
   };
 
   getSearchParameters = page => {
+    let parentCatPram = "";
+    if (this.state.parentCategory != 0)
+      parentCatPram = "&parentCategory=" + this.state.parentCategory;
     var parameterString =
       "page=" +
       page +
-      "&barcode=" +
-      this.state.barcode +
-      "&parentCategory=" +
-      this.state.parentCategory +
+      parentCatPram +
       "&productCatCode=" +
       this.state.productCatCode +
       "&productCatName=" +
@@ -120,7 +121,10 @@ class ProductPage extends React.Component {
   deleteProductCategory = () => {
     fetch(API_URL + "/deleteProductCategory/" + this.state.deleteItemId, {
       headers: { "Content-Type": "application/json" },
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
     })
       .then(response => {
         if (response.status === 200) {
@@ -153,6 +157,7 @@ class ProductPage extends React.Component {
   };
 
   renderForm = mode => {
+    console.log("this.state.productCategory", this.state.productCategory);
     if (mode === "Add") this.setState({ formData: this.state.productCategory });
     this.setState({
       isOpen: true,
@@ -161,7 +166,11 @@ class ProductPage extends React.Component {
   };
 
   getProductCategoryList = () => {
-    fetch(API_URL + "/getAllProductCategory")
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -182,7 +191,6 @@ class ProductPage extends React.Component {
     this.setState({
       formData: selectedRow
     });
-    console.log("Forma Data", this.state.formData);
   };
   render() {
     const { classes } = this.props;
@@ -225,24 +233,27 @@ class ProductPage extends React.Component {
         >
           <AddIcon />
         </Fab>
-        <form autoComplete="off">
+        <div className="formContainer">
           <FormControl required className="formControl">
             <InputLabel htmlFor="parentCategory">Parent Category</InputLabel>
             <Select
               value={this.state.parentCategory}
-              native
               onChange={this.handleChange}
               input={<Input name="parentCategory" id="parentCategory" />}
+              InputLabelProps={{
+                shrink: true
+              }}
             >
+              <MenuItem value="0">All</MenuItem>
               {this.state.productCategoryList.map(
                 n => (
-                  <option value={n.id}>{n.productCatCode}</option>
+                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
                 ),
                 this
               )}
             </Select>
           </FormControl>
-
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -256,6 +267,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
+          <div className="searchFormFieldSeperator" />
 
           <FormControl className="formControl">
             <TextField
@@ -270,7 +282,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
-
+          <div className="searchFormFieldSeperator" />
           <Button
             variant="contained"
             color="primary"
@@ -278,7 +290,7 @@ class ProductPage extends React.Component {
           >
             Search
           </Button>
-        </form>
+        </div>
         {/* this.state.data.length > 0 && */}
         {
           <DataGrid
@@ -299,10 +311,12 @@ class ProductPage extends React.Component {
           open={this.state.isOpen}
           onClose={this.handleFormClose}
           scroll="paper"
+          disableBackdropClick
+          disableEscapeKeyDown
           aria-labelledby="scroll-dialog-title"
         >
           <DialogTitle id="scroll-dialog-title">
-            {this.state.mode} Product
+            {this.state.mode} Product Category
           </DialogTitle>
           <DialogContent>
             <ProductCategoryForm

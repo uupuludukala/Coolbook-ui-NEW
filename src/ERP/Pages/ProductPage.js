@@ -20,6 +20,7 @@ import Input from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import { withStyles } from "@material-ui/core/styles";
 import "../css/main.css";
+import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
 const styles = theme => ({
   root: {
     display: "flex",
@@ -33,7 +34,7 @@ class ProductPage extends React.Component {
       active: false,
       barcode: "",
       cost: 0,
-      productCategory: "#",
+      productCategory: 0,
       productCode: "",
       productName: "",
       productType: "0",
@@ -51,15 +52,20 @@ class ProductPage extends React.Component {
       isDltOpen: false,
       active: false,
       barcode: "",
-      productCategory: "#",
+      productCategory: 0,
       productCode: "",
       productName: "",
-      productType: "",
+      productType: "#",
+      pageSize: 20,
       productCategoryList: []
     };
   }
   getProductCategory = () => {
-    fetch(API_URL + "/getAllProductCategory")
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -83,10 +89,16 @@ class ProductPage extends React.Component {
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
-  getProduct = page => {
-    let searchParameters = this.getSearchParameters(page);
+  getProduct = (page, pageSize) => {
+    this.setState({ pageSize: pageSize });
+    let searchParameters = this.getSearchParameters(page, pageSize);
+
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllProduct?" + searchParameters)
+    fetch(API_URL + "/getAllProduct?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -116,18 +128,20 @@ class ProductPage extends React.Component {
       });
   };
 
-  getSearchParameters = page => {
+  getSearchParameters = (page, pageSize) => {
     var parameterString =
       "page=" +
       page +
       "&barcode=" +
       this.state.barcode +
       "&productCategory=" +
-      this.state.productCategory +
+      (this.state.productCategory != 0 ? this.state.productCategory : "") +
       "&productCode=" +
       this.state.productCode +
       "&productName=" +
       this.state.productName +
+      "&size=" +
+      pageSize +
       "&productType=" +
       this.state.productType;
     console.log("parameterString", parameterString);
@@ -144,7 +158,10 @@ class ProductPage extends React.Component {
 
   deleteProduct = () => {
     fetch(API_URL + "/deleteProduct/" + this.state.deleteItemId, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      },
       method: "DELETE"
     })
       .then(response => {
@@ -152,7 +169,7 @@ class ProductPage extends React.Component {
           this.setState({
             isDltOpen: false
           });
-          this.getProduct(0);
+          this.getProduct(0, this.state.pageSize);
         } else {
           console.log("Error Saving Data");
         }
@@ -163,7 +180,7 @@ class ProductPage extends React.Component {
   };
   componentDidMount() {
     this.getProductCategory();
-    this.getProduct(0);
+    this.getProduct(0, this.state.pageSize);
   }
 
   handleFormClose = () => {
@@ -188,10 +205,8 @@ class ProductPage extends React.Component {
     this.setState({
       formData: selectedRow
     });
-    console.log("Forma Data", this.state.formData);
   };
   render() {
-    const { classes } = this.props;
     const rows = [
       {
         id: "productCode",
@@ -274,7 +289,6 @@ class ProductPage extends React.Component {
           <AddIcon />
         </Fab>
         <div className="formContainer">
-          {/* <form autoComplete="off"> */}
           <FormControl className="formControl">
             <FormControlLabel
               control={
@@ -291,7 +305,7 @@ class ProductPage extends React.Component {
               label="Active"
             />
           </FormControl>
-          <br />
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -305,23 +319,23 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
-
+          <div className="searchFormFieldSeperator" />
           <FormControl required className="formControl">
             <InputLabel htmlFor="productCategory">Product Category</InputLabel>
             <Select
               value={this.state.productCategory}
-              native
               onChange={this.handleChange}
               input={<Input name="productCategory" id="productCategory" />}
             >
               {this.state.productCategoryList.map(
                 n => (
-                  <option value={n.id}>{n.productCatCode}</option>
+                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
                 ),
                 this
               )}
             </Select>
           </FormControl>
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -335,6 +349,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -348,6 +363,7 @@ class ProductPage extends React.Component {
               }}
             />
           </FormControl>
+          <div className="searchFormFieldSeperator" />
           <FormControl required className="formControl">
             <InputLabel htmlFor="productType">Product Type</InputLabel>
             <Select
@@ -355,24 +371,24 @@ class ProductPage extends React.Component {
               onChange={this.handleChange}
               input={<Input name="productType" id="productType" />}
             >
-              <MenuItem value="0">
-                <em>None</em>
-              </MenuItem>
-              <MenuItem value="olivier">Olivier</MenuItem>
-              <MenuItem value="kevin">Kevin</MenuItem>
+              {PRODUCT_TYPE_LIST.map(
+                n => (
+                  <MenuItem value={n}>{n}</MenuItem>
+                ),
+                this
+              )}
             </Select>
           </FormControl>
+          <div className="searchFormFieldSeperator" />
 
           <Button
             variant="contained"
             color="primary"
-            onClick={() => this.getProduct(0)}
+            onClick={() => this.getProduct(0, this.state.pageSize)}
           >
             Search
           </Button>
-          {/* </form> */}
         </div>
-        {/* this.state.data.length > 0 && */}
         {
           <DataGrid
             deleteFunction={this.deleteDialogOpen}
@@ -392,6 +408,8 @@ class ProductPage extends React.Component {
           open={this.state.isOpen}
           onClose={this.handleFormClose}
           scroll="paper"
+          disableBackdropClick
+          disableEscapeKeyDown
           aria-labelledby="scroll-dialog-title"
         >
           <DialogTitle id="scroll-dialog-title">

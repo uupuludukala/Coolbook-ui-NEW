@@ -90,7 +90,11 @@ class CustomerForm extends React.Component {
             ? "/saveCustomer/" + this.state.id
             : "/saveCustomer"),
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:
+              "Bearer " + window.localStorage.getItem("access_token")
+          },
           method: requestMethod,
           body: JSON.stringify(customer)
         }
@@ -100,9 +104,8 @@ class CustomerForm extends React.Component {
             this.closeForm();
             this.props.getDataFunction(0);
             // this.clearForm();
-          } else if(response.status === 422){
-                        
-          }else{
+          } else if (response.status === 422) {
+          } else {
             console.log("Error Saving Data");
           }
         })

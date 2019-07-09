@@ -65,7 +65,11 @@ class CustomerPage extends React.Component {
   getCustomer = page => {
     let searchParameters = this.getSearchParameters(page);
     console.log("searchParameters", searchParameters);
-    fetch(API_URL + "/getAllCustomer?" + searchParameters)
+    fetch(API_URL + "/getAllCustomer?" + searchParameters, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
       .then(response => {
         return response.json();
       })
@@ -121,7 +125,10 @@ class CustomerPage extends React.Component {
 
   deleteCustomer = () => {
     fetch(API_URL + "/deleteCustomer/" + this.state.deleteItemId, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      },
       method: "DELETE"
     })
       .then(response => {
@@ -242,7 +249,7 @@ class CustomerPage extends React.Component {
         >
           <AddIcon />
         </Fab>
-        <form autoComplete="off">
+        <div className="formContainer">
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -258,11 +265,10 @@ class CustomerPage extends React.Component {
               }}
             />
           </FormControl>
-          <br />
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
-              type="number"
               name="firstName"
               value={this.state.firstName}
               onChange={this.handleChange}
@@ -275,7 +281,7 @@ class CustomerPage extends React.Component {
               }}
             />
           </FormControl>
-          <br />
+          <div className="searchFormFieldSeperator" />
           <FormControl className="formControl">
             <TextField
               required={true}
@@ -291,8 +297,7 @@ class CustomerPage extends React.Component {
               }}
             />
           </FormControl>
-          <br />
-
+          <div className="searchFormFieldSeperator" />
           <Button
             variant="contained"
             color="primary"
@@ -300,7 +305,7 @@ class CustomerPage extends React.Component {
           >
             Search
           </Button>
-        </form>
+        </div>
         {/* this.state.data.length > 0 && */}
         {
           <DataGrid
@@ -321,6 +326,8 @@ class CustomerPage extends React.Component {
           open={this.state.isOpen}
           onClose={this.handleFormClose}
           scroll="paper"
+          disableBackdropClick
+          disableEscapeKeyDown
           aria-labelledby="scroll-dialog-title"
         >
           <DialogTitle id="scroll-dialog-title">

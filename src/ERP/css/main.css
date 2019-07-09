@@ -9,3 +9,7 @@
   flex-wrap: wrap;
   justify-content: "center";
 }
+
+.searchFormFieldSeperator {
+  width: 10px;
+}
