@@ -40,15 +40,18 @@ const tableStyle = theme => ({
     borderCollapse: "collapse"
   },
   tableHeadCell: {
-    color: "inherit",
+    // color: "inherit",
     ...defaultFont,
-    fontSize: "1em"
+    fontSize: "1em",
+    fontWeight: "bold",
+    cursor: "pointer"
   },
   tableCell: {
     ...defaultFont,
     lineHeight: "1.42857143",
     padding: "12px 8px",
-    verticalAlign: "middle"
+    verticalAlign: "middle",
+    cursor: "pointer"
   },
   tableResponsive: {
     width: "100%",

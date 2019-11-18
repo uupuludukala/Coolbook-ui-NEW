@@ -19,7 +19,8 @@ function Snackbar({ ...props }) {
     icon,
     place,
     open,
-    rtlActive
+    rtlActive,
+    onClose
   } = props;
   var action = [];
   const messageClasses = classNames({
@@ -41,14 +42,10 @@ function Snackbar({ ...props }) {
   return (
     <Snack
       anchorOrigin={{
-        vertical: place.indexOf("t") === -1 ? "bottom" : "top",
-        horizontal:
-          place.indexOf("l") !== -1
-            ? "left"
-            : place.indexOf("c") !== -1
-            ? "center"
-            : "right"
+        vertical: "top",
+        horizontal: "right"
       }}
+      autoHideDuration={4000}
       open={open}
       message={
         <div>
@@ -56,6 +53,7 @@ function Snackbar({ ...props }) {
           <span className={messageClasses}>{message}</span>
         </div>
       }
+      onClose={onClose}
       action={action}
       ContentProps={{
         classes: {

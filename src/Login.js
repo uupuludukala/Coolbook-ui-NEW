@@ -50,8 +50,8 @@ const styles = makeStyles(theme => ({
 
 class Login extends React.Component {
   state = {
-    username: "",
-    password: ""
+    username: "furnico",
+    password: "furnico"
   };
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });

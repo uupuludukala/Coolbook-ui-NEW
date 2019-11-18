@@ -1,26 +1,15 @@
 import React from "react";
-import DataGrid from "../Components/DataGrid";
-import Fab from "@material-ui/core/Fab";
-import AddIcon from "@material-ui/icons/Add";
+import withStyles from "@material-ui/core/styles/withStyles";
+import GridItem from "components/Grid/GridItem.jsx";
+import GridContainer from "components/Grid/GridContainer.jsx";
+import Card from "components/Card/Card.jsx";
+import Table from "components/Table/Table.jsx";
+import CardBody from "components/Card/CardBody.jsx";
 import ProductForm from "../Forms/ProductForm";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContentText from "@material-ui/core/DialogContentText";
+import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
-import Switch from "@material-ui/core/Switch";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import TextField from "@material-ui/core/TextField";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Input from "@material-ui/core/Input";
-import MenuItem from "@material-ui/core/MenuItem";
-import { withStyles } from "@material-ui/core/styles";
-import "../css/main.css";
-import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
+import Snackbar from "components/Snackbar/Snackbar.jsx";
+
 const styles = theme => ({
   root: {
     display: "flex",
@@ -29,71 +18,44 @@ const styles = theme => ({
 });
 
 class ProductPage extends React.Component {
-  constructor(props) {
-    const product = {
-      active: false,
-      barcode: "",
-      cost: 0,
-      productCategory: 0,
-      productCode: "",
-      productName: "",
-      productType: "0",
-      quantity: 0,
-      salePrice: 0
-    };
-    super(props);
-    this.state = {
-      data: [],
-      isOpen: false,
-      mode: "",
-      formData: product,
-      product: product,
-      page: 0,
-      isDltOpen: false,
-      active: false,
-      barcode: "",
-      productCategory: 0,
-      productCode: "",
-      productName: "",
-      productType: "#",
-      pageSize: 20,
-      productCategoryList: []
-    };
+  state = {
+    pageSize: 20,
+    data: [],
+    product: "",
+    isOpenNotification: false
+  };
+
+  closeNotification = () => {
+    console.log("Notification Function");
+    this.setState({
+      isOpenNotification: false
+    });
+  };
+
+  reloadData = () => {
+    this.getProduct(0, this.state.pageSize);
+  };
+  showNotification = (message, notificationclass) => {
+    this.setState({
+      isOpenNotification: true,
+      notificationMessage: message,
+      notificationclass: notificationclass
+    });
+  };
+
+  componentDidMount() {
+    this.reloadData();
   }
-  getProductCategory = () => {
-    fetch(API_URL + "/getAllProductCategory", {
-      headers: {
-        Authorization: "Bearer " + window.localStorage.getItem("access_token")
-      }
-    })
-      .then(response => {
-        return response.json();
-      })
-      .then(dataRetrived => {
-        const rawData = dataRetrived._embedded.productCategoryGetList;
-
-        this.setState({
-          productCategoryList: rawData
-        });
-      })
-      .catch(err => {
-        // Do something for an error here
-        console.log("Error", err);
-      });
+  getSearchParameters = (page, pageSize) => {
+    var parameterString = "page=" + page + "&size=" + pageSize;
+    return parameterString;
   };
 
-  handleChangeByName = name => event => {
-    this.setState({ [name]: event.target.checked });
-  };
-
-  handleChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
   getProduct = (page, pageSize) => {
+    console.log("Function called Today");
     this.setState({ pageSize: pageSize });
     let searchParameters = this.getSearchParameters(page, pageSize);
 
-    console.log("searchParameters", searchParameters);
     fetch(API_URL + "/getAllProduct?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -106,21 +68,20 @@ class ProductPage extends React.Component {
         if (dataRetrived.page.totalPages !== 0) {
           const rawData = dataRetrived._embedded.productGetList;
           this.setState({
-            data: rawData,
-            pageSize: dataRetrived.page.size,
-            totalPages: dataRetrived.page.totalPages,
-            totalElements: dataRetrived.page.totalElements,
-            page: dataRetrived.page.number
+            data: rawData
           });
         } else {
           this.setState({
-            data: [],
-            pageSize: dataRetrived.page.size,
-            totalPages: dataRetrived.page.totalPages,
-            totalElements: dataRetrived.page.totalElements,
-            page: dataRetrived.page.number
+            data: []
           });
         }
+        this.setState({
+          pageSize: dataRetrived.page.size,
+          totalPages: dataRetrived.page.totalPages,
+          rowsCount: dataRetrived.page.totalElements,
+          page: dataRetrived.page.number
+        });
+        this.refs.toolBar.renderGrid();
       })
       .catch(err => {
         // Do something for an error here
@@ -128,345 +89,137 @@ class ProductPage extends React.Component {
       });
   };
 
-  getSearchParameters = (page, pageSize) => {
-    var parameterString =
-      "page=" +
-      page +
-      "&barcode=" +
-      this.state.barcode +
-      "&productCategory=" +
-      (this.state.productCategory != 0 ? this.state.productCategory : "") +
-      "&productCode=" +
-      this.state.productCode +
-      "&productName=" +
-      this.state.productName +
-      "&size=" +
-      pageSize +
-      "&productType=" +
-      this.state.productType;
-    console.log("parameterString", parameterString);
-    return parameterString;
+  submitForm = () => {
+    this.refs.productForm.submitform();
   };
 
-  deleteDialogOpen = id => {
-    console.log("Id is", id);
-    this.setState({
-      isDltOpen: true,
-      deleteItemId: id
-    });
+  deleteSelected = () => {
+    this.refs.productForm.deleteProduct();
+  };
+  enableEditMode = () => {
+    this.refs.productForm.enableEditMode();
+    this.refs.productForm.enableFormElements();
   };
 
-  deleteProduct = () => {
-    fetch(API_URL + "/deleteProduct/" + this.state.deleteItemId, {
+  enableAddMode = () => {
+    this.refs.productForm.enableAddMode();
+    this.refs.productForm.clearForm();
+    this.refs.productForm.enableFormElements();
+  };
+  resetForm = () => {
+    this.refs.productForm.resetForm();
+  };
+  getSelectedProduct = id => {
+    fetch(API_URL + "/getProductById/" + id, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
-      },
-      method: "DELETE"
+      }
     })
       .then(response => {
-        if (response.status === 200) {
-          this.setState({
-            isDltOpen: false
-          });
-          this.getProduct(0, this.state.pageSize);
-        } else {
-          console.log("Error Saving Data");
-        }
+        return response.json();
       })
-      .catch(error => {
-        console.log("error Saving Data catch" + error);
+      .then(dataRetrived => {
+        this.refs.toolBar.renderForm();
+        this.refs.productForm.setFormData(dataRetrived);
+      })
+      .catch(err => {
+        console.log("Error", err);
       });
   };
-  componentDidMount() {
-    this.getProductCategory();
-    this.getProduct(0, this.state.pageSize);
-  }
-
-  handleFormClose = () => {
-    this.setState({
-      isOpen: false
-    });
+  getProductByLocation = location => {
+    fetch(location, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        this.refs.toolBar.renderForm();
+        this.refs.productForm.setFormData(dataRetrived);
+      })
+      .catch(err => {
+        console.log("Error", err);
+      });
+  };
+  disableSaveButtons = () => {
+    this.refs.toolBar.disableSaveButtons();
   };
 
-  closeDeleteDialog = () => {
-    this.setState({ isDltOpen: false });
-  };
-
-  renderForm = mode => {
-    if (mode === "Add") this.setState({ formData: this.state.product });
-    this.setState({
-      isOpen: true,
-      mode: mode
-    });
-  };
-
-  rowSelect = selectedRow => {
-    this.setState({
-      formData: selectedRow
-    });
-  };
   render() {
-    const rows = [
+    const tableHeaders = [
       {
-        id: "productCode",
+        id: "internalReference",
         numeric: false,
-        disablePadding: true,
-        label: "Product Code",
-        display: true
+        label: "Internal Reference"
       },
       {
         id: "productName",
         numeric: false,
-        disablePadding: true,
-        label: "Product Name",
-        display: true
-      },
-      {
-        id: "productType",
-        numeric: false,
-        disablePadding: true,
-        label: "Product Type",
-        display: true
-      },
-      {
-        id: "productCategory",
-        numeric: false,
-        disablePadding: true,
-        label: "Product Category",
-        display: true
-      },
-      {
-        id: "barcode",
-        numeric: false,
-        disablePadding: true,
-        label: "Barcode",
-        display: true
+        label: "Name"
       },
       {
         id: "salePrice",
         numeric: true,
-        disablePadding: false,
-        label: "Sale Price",
-        display: true
+        label: "Sale Price"
       },
       {
         id: "cost",
         numeric: true,
-        disablePadding: false,
-        label: "Cost",
-        display: true
-      },
-      {
-        id: "active",
-        numeric: false,
-        disablePadding: true,
-        label: "Active",
-        display: true
-      },
-      {
-        id: "quantity",
-        numeric: true,
-        disablePadding: false,
-        label: "Quantity",
-        display: true
-      },
-      {
-        id: "imageUrl",
-        numeric: false,
-        disablePadding: true,
-        label: "Image",
-        display: false
+        label: "Cost"
       }
     ];
+
     return (
-      <div>
-        <Fab
-          color="primary"
-          aria-label="Add"
-          onClick={() => this.renderForm("Add")}
-        >
-          <AddIcon />
-        </Fab>
-        <div className="formContainer">
-          <FormControl className="formControl">
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={this.state.active}
-                  name="active"
-                  onChange={this.handleChangeByName("active")}
-                  label="Active"
-                  color="primary"
-                >
-                  {" "}
-                </Switch>
-              }
-              label="Active"
+      <GridContainer>
+        <GridItem xs={12} sm={12} md={12}>
+          <Card>
+            <MasterDataToolbar
+              ref="toolBar"
+              submitForm={this.submitForm}
+              deleteSelected={this.deleteSelected}
+              resetForm={this.resetForm}
+              enableEditModeFuction={this.enableEditMode}
+              enableAddModeFuction={this.enableAddMode}
+              reloadFunction={this.reloadData}
             />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              name="barcode"
-              value={this.state.barcode}
-              onChange={this.handleChange}
-              label="Barcode"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl required className="formControl">
-            <InputLabel htmlFor="productCategory">Product Category</InputLabel>
-            <Select
-              value={this.state.productCategory}
-              onChange={this.handleChange}
-              input={<Input name="productCategory" id="productCategory" />}
-            >
-              {this.state.productCategoryList.map(
-                n => (
-                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
-                ),
-                this
-              )}
-            </Select>
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              name="productCode"
-              value={this.state.productCode}
-              onChange={this.handleChange}
-              label="Product Code"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              name="productName"
-              value={this.state.productName}
-              onChange={this.handleChange}
-              label="Product Name"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl required className="formControl">
-            <InputLabel htmlFor="productType">Product Type</InputLabel>
-            <Select
-              value={this.state.productType}
-              onChange={this.handleChange}
-              input={<Input name="productType" id="productType" />}
-            >
-              {PRODUCT_TYPE_LIST.map(
-                n => (
-                  <MenuItem value={n}>{n}</MenuItem>
-                ),
-                this
-              )}
-            </Select>
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => this.getProduct(0, this.state.pageSize)}
-          >
-            Search
-          </Button>
-        </div>
-        {
-          <DataGrid
-            deleteFunction={this.deleteDialogOpen}
-            getDataFunction={this.getProduct}
-            rows={rows}
-            data={this.state.data}
-            page={this.state.page}
-            totalElements={this.state.totalElements}
-            totalPages={this.setState.totalPages}
-            rowsPerPage={this.state.pageSize}
-            rowSelected={this.rowSelect}
-            rowOnclickFunction={() => this.renderForm("Update")}
-          />
-        }
-        <Dialog
-          fullWidth={true}
-          open={this.state.isOpen}
-          onClose={this.handleFormClose}
-          scroll="paper"
-          disableBackdropClick
-          disableEscapeKeyDown
-          aria-labelledby="scroll-dialog-title"
-        >
-          <DialogTitle id="scroll-dialog-title">
-            {this.state.mode} Product
-          </DialogTitle>
-          <DialogContent>
-            <ProductForm
-              getDataFunction={this.getProduct}
-              closefunction={this.handleFormClose}
-              formData={this.state.formData}
-              mode={this.state.mode}
-              productCategoryList={this.state.productCategoryList}
-            />
-          </DialogContent>
-          {/* <DialogActions>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Save
-                        </Button>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Clear
-                        </Button>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Cancel
-                        </Button>
+            <CardBody id="main">
+              <Table
+                rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
+                rowsCount={this.state.rowsCount}
+                rowsPerPage={this.state.pageSize}
+                page={this.state.page}
+                tableHeaderColor="primary"
+                tableHead={tableHeaders}
+                tableData={this.state.data}
+                getDataFunction={this.getProduct}
+                getSelectedRowFuction={this.getSelectedProduct}
+              />
+            </CardBody>
+            <CardBody id="form" style={{ display: "none" }}>
+              <ProductForm
+                ref="productForm"
+                reloadFunction={this.reloadData}
+                showNotification={this.showNotification}
+                getProductByLocation={this.getProductByLocation}
+                disableSaveButtons={this.disableSaveButtons}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
 
-                    </DialogActions> */}
-        </Dialog>
-        <Dialog
-          open={this.state.isDltOpen}
-          onClose={this.closeDeleteDialog}
-          scroll="paper"
-          aria-labelledby="scroll-dialog-title"
-        >
-          <DialogTitle>Delete Product</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Please confirm to delete record
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={this.closeDeleteDialog}
-              variant="contained"
-              color="primary"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={this.deleteProduct}
-              variant="contained"
-              color="primary"
-            >
-              Ok
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
+        <Snackbar
+          place="tl"
+          color={this.state.notificationclass}
+          message={this.state.notificationMessage}
+          onClose={this.closeNotification}
+          open={this.state.isOpenNotification}
+          closeNotification={this.closeNotification}
+          close
+        />
+      </GridContainer>
     );
   }
 }

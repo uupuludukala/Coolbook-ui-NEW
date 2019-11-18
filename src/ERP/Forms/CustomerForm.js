@@ -1,388 +1,402 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
 import { API_URL } from "../properties/applicationProperties";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Checkbox from "@material-ui/core/Checkbox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Input from "@material-ui/core/Input";
+import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import Chip from "@material-ui/core/Chip";
+import InputLabel from "@material-ui/core/InputLabel";
+import Camera from "@material-ui/icons/CameraEnhance";
+import {
+  ValidatorForm,
+  TextValidator,
+  SelectValidator
+} from "react-material-ui-form-validator";
+import GridItem from "components/Grid/GridItem.jsx";
+import GridContainer from "components/Grid/GridContainer.jsx";
+import Typography from "@material-ui/core/Typography";
+import customInputStyle from "assets/jss/material-dashboard-react/components/customInputStyle.jsx";
 
-const styles = theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
-  }
-});
-
+function TabContainer(props) {
+  return (
+    <Typography component="div" style={{ padding: 8 * 3 }}>
+      {props.children}
+    </Typography>
+  );
+}
 class CustomerForm extends React.Component {
   state = {
-    ...this.props.formData,
-    mode: this.props.mode
+    imageUrl: "",
+    venderTaxes: [],
+    tabValue: 0,
+    customerType: 0,
+    customerCategoryList: []
   };
-
-  handleChangeByName = name => event => {
-    this.setState({ [name]: event.target.checked });
+  resetForm = () => {
+    this.refs.form.resetValidations();
   };
-
+  handleTabChange = (event, newValue) => {
+    this.setState({ tabValue: newValue });
+  };
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
+  handleChangeByName = name => event => {
+    this.setState({ [name]: event.target.checked });
+  };
+  handleChangeForVenderTaxes = event => {
+    console.log("event.target.value" + event.target.value);
+    const value = [];
+    for (let i = 0, l = event.target.value.length; i < l; i += 1) {
+      value.push(event.target.value[i]);
+    }
+
+    this.setState({ venderTaxes: value });
+    // this.state.venderTaxes.push(event.target.value);
+    // this.setState({ [event.target.name]: event.target.value });
+  };
+
+  submitform = () => {
+    this.refs.form.submit();
+  };
+  enableEditMode = () => {
+    this.setState({
+      saveMode: "Update"
+    });
+  };
+
+  enableAddMode = () => {
+    this.setState({
+      saveMode: "Add"
+    });
+  };
 
   clearForm = () => {
-    this.clearerrorMessages();
     this.setState({
       nicNumber: "",
-      firstName: "",
-      lastName: "",
+      customerName: "",
       addressLine1: "",
       addressLine2: "",
       addressLine3: "",
       mobileNumer: "",
       homePhone: "",
-      creditLimit: 0
+      creditLimit: "0.00"
     });
   };
-  clearerrorMessages = () => {
-    this.setState({
-      nicNumberError: "",
-      nicNumberHelperText: "",
-      firstNameError: "",
-      firstNameHelperText: "",
-      lastNameError: "",
-      lastNameHelperText: "",
-      addressLine1Error: "",
-      addressLine1HelperText: "",
-      addressLine2Error: "",
-      addressLine2HelperText: "",
-      addressLine3Error: "",
-      addressLine3HelperText: "",
-      mobileNumerError: "",
-      mobileNumerHelperText: "",
-      homePhoneError: "",
-      homePhoneHelperText: "",
-      creditLimitError: "",
-      creditLimitHelperText: ""
-    });
+
+  setFormData = dataRetrived => {
+    console.log("dataRetrived", dataRetrived);
+    this.setState({ ...dataRetrived });
+    this.disableFormElements();
+    console.log("makeToOrder Value", this.state.makeToOrder);
   };
-  submitform = () => {
-    if (this.validateForm()) {
-      const customer = {
-        nicNumber: this.state.nicNumber,
-        firstName: this.state.firstName,
-        lastName: this.state.lastName,
-        addressLine1: this.state.addressLine1,
-        addressLine2: this.state.addressLine2,
-        addressLine3: this.state.addressLine3,
-        mobileNumer: this.state.mobileNumer,
-        homePhone: this.state.homePhone,
-        creditLimit: this.state.creditLimit
-      };
-      let requestMethod = this.state.mode === "Update" ? "PUT" : "POST";
-      fetch(
-        API_URL +
-          (this.state.mode === "Update"
-            ? "/saveCustomer/" + this.state.id
-            : "/saveCustomer"),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization:
-              "Bearer " + window.localStorage.getItem("access_token")
-          },
-          method: requestMethod,
-          body: JSON.stringify(customer)
+  disableFormElements = () => {
+    this.setState({ disableFormElements: true });
+  };
+
+  enableFormElements = () => {
+    this.setState({ disableFormElements: false });
+  };
+  deleteCustomer = () => {
+    fetch(API_URL + "/deleteCustomer/" + this.state.id, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token"),
+        "Access-Control-Allow-Origin": "*"
+      },
+      method: "DELETE"
+    })
+      .then(response => {
+        if (response.status === 200) {
+          this.props.reloadFunction();
+          this.props.showNotification("Deleted Successfully", "success");
+        } else {
+          console.log("Error Saving Data");
+          this.props.showNotification("Error on deleting data", "danger");
         }
-      )
-        .then(response => {
-          if (response.status === 201 || response.status === 200) {
-            this.closeForm();
-            this.props.getDataFunction(0);
-            // this.clearForm();
-          } else if (response.status === 422) {
-          } else {
-            console.log("Error Saving Data");
-          }
-        })
-        .catch(error => {
-          console.log("error Saving Data catch" + error);
+      })
+      .catch(error => {
+        console.log("error Saving Data catch" + error);
+        this.props.showNotification("Error on deleting data", "danger");
+      });
+  };
+
+  save = () => {
+    const customer = {
+      nicNumber: this.state.nicNumber,
+      customerName: this.state.customerName,
+      addressLine1: this.state.addressLine1,
+      addressLine2: this.state.addressLine2,
+      addressLine3: this.state.addressLine3,
+      mobileNumer: this.state.mobileNumer,
+      homePhone: this.state.homePhone,
+      creditLimit: this.state.creditLimit,
+      imageUrl: this.state.imageUrl
+    };
+    let requestMethod = this.state.saveMode === "Update" ? "PUT" : "POST";
+    fetch(
+      API_URL +
+        (this.state.saveMode === "Update"
+          ? "/saveCustomer/" + this.state.id
+          : "/saveCustomer"),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + window.localStorage.getItem("access_token")
+        },
+        method: requestMethod,
+        body: JSON.stringify(customer)
+      }
+    )
+      .then(response => {
+        if (response.status === 201 || response.status === 200) {
+          this.disableFormElements();
+          this.props.reloadFunction();
+          this.props.showNotification("Saved Successfully", "success");
+          this.props.getCustomerByLocation(response.headers.get("Location"));
+          this.props.disableSaveButtons(true);
+        } else {
+          console.log("Error Saving Data");
+          this.props.showNotification("Error on saving data", "danger");
+        }
+      })
+      .catch(error => {
+        this.props.showNotification("Error on saving data", "danger");
+      });
+  };
+  uploadFile = () => {
+    console.log("File Upload Finction call");
+    let file = document.getElementById("customerImage").files[0];
+    var formData = new FormData();
+    formData.append("file", file);
+    console.log("file", file);
+    fetch(API_URL + "/uploadFile", {
+      headers: {
+        // "Content-Type": "multipart/form-data"
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      },
+      method: "post",
+      body: formData
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        console.log("dataRetrived", dataRetrived);
+        this.setState({
+          imageUrl: dataRetrived.fileDownloadUri
         });
-    }
+      })
+      .catch(error => {
+        console.log("error Saving Data catch" + error);
+      });
   };
-  closeForm = () => {
-    this.props.closefunction();
-  };
-  validateForm = () => {
-    let isValid = true;
-    if (this.state.nicNumber === "") {
-      this.setState({
-        nicNumberError: true,
-        nicNumberHelperText: "NIC Number Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        nicNumberError: false,
-        nicNumberHelperText: ""
-      });
-    }
-    if (this.state.firstName === "") {
-      this.setState({
-        firstNameError: true,
-        firstNameHelperText: "First Name Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        firstNameError: false,
-        firstNameHelperText: ""
-      });
-    }
-    if (this.state.lastName === "") {
-      this.setState({
-        lastNameError: true,
-        lastNameHelperText: "Last Name Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        lastNameError: false,
-        lastNameHelperText: ""
-      });
-    }
-    if (this.state.addressLine1 === "") {
-      this.setState({
-        addressLine1Error: true,
-        addressLine1HelperText: "AddressLine1 Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        addressLine1Error: false,
-        addressLine1HelperText: ""
-      });
-    }
-    if (this.state.addressLine2 === "") {
-      this.setState({
-        addressLine2Error: true,
-        addressLine2HelperText: "AddressLine2 Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        addressLine2Error: false,
-        addressLine2HelperText: ""
-      });
-    }
-    if (this.state.mobileNumer === "") {
-      this.setState({
-        mobileNumerError: true,
-        mobileNumerHelperText: "Mobile Numer Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        mobileNumerError: false,
-        mobileNumerHelperText: ""
-      });
-    }
 
-    if (this.state.creditLimit === "") {
-      this.setState({
-        creditLimitError: true,
-        creditLimitHelperText: "CreditLimit Required"
-      });
-      isValid = false;
-    } else {
-      this.setState({
-        creditLimitError: false,
-        creditLimitHelperText: ""
-      });
-    }
-    return isValid;
-  };
   render() {
+    const imageContainer = {
+      boxShadow: "10px 10px 5px grey",
+      border: "0.5px solid black",
+      display: "block",
+      width: "105px",
+      height: "105px"
+    };
+    const imageViewer = {
+      display: "block",
+      width: "100px",
+      height: "100px",
+      padding: "2px"
+    };
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+      PaperProps: {
+        style: {
+          maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+          width: 250
+        }
+      }
+    };
+
     const { classes } = this.props;
-
     return (
-      <div>
-        <form autoComplete="off">
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              name="nicNumber"
-              value={this.state.nicNumber}
-              onChange={this.handleChange}
-              label="NIC Number"
-              error={this.state.nicNumberError}
-              helperText={this.state.nicNumberHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              name="firstName"
-              value={this.state.firstName}
-              onChange={this.handleChange}
-              label="First Name"
-              error={this.state.firstNameError}
-              helperText={this.state.firstNameHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              name="lastName"
-              value={this.state.lastName}
-              onChange={this.handleChange}
-              label="Last Name"
-              error={this.state.lastNameError}
-              helperText={this.state.lastNameHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
+      <ValidatorForm
+        ref="form"
+        onSubmit={this.save}
+        onError={errors => console.log(errors)}
+      >
+        <GridContainer>
+          <GridItem>
+            <FormControl required className={classes.formControl}>
+              <h2>Customer Name</h2>
+              <TextValidator
+                disabled={this.state.disableFormElements}
+                name="customerName"
+                validators={["required"]}
+                errorMessages={["Customer Name Required"]}
+                value={this.state.customerName}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
 
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              name="addressLine1"
-              value={this.state.addressLine1}
-              onChange={this.handleChange}
-              label="AddressLine1"
-              error={this.state.addressLine1Error}
-              helperText={this.state.addressLine1HelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              name="addressLine2"
-              value={this.state.addressLine2}
-              onChange={this.handleChange}
-              label="AddressLine2"
-              error={this.state.addressLine2Error}
-              helperText={this.state.addressLine2HelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={false}
-              name="addressLine3"
-              value={this.state.addressLine3}
-              onChange={this.handleChange}
-              label="AddressLine3"
-              error={this.state.addressLine3Error}
-              helperText={this.state.addressLine3HelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.mobileNumerError}
-              helperText={this.state.mobileNumerHelperText}
-              name="mobileNumer"
-              value={this.state.mobileNumer}
-              onChange={this.handleChange}
-              label="Mobile Numer"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="NIC Number"
+                disabled={this.state.disableFormElements}
+                name="nicNumber"
+                validators={["required"]}
+                errorMessages={["NIC Number Required"]}
+                value={this.state.nicNumber}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
 
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={false}
-              error={this.state.homePhoneError}
-              helperText={this.state.homePhoneHelperText}
-              name="homePhone"
-              value={this.state.homePhone}
-              onChange={this.handleChange}
-              label="Home Phone"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Address Line1"
+                disabled={this.state.disableFormElements}
+                name="addressLine1"
+                validators={["required"]}
+                errorMessages={["AddressLine1 Required"]}
+                value={this.state.addressLine1}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
 
-          <FormControl className={classes.formControl}>
-            <TextField
-              required={true}
-              error={this.state.creditLimitError}
-              helperText={this.state.creditLimitHelperText}
-              type="number"
-              name="creditLimit"
-              value={this.state.creditLimit}
-              onChange={this.handleChange}
-              label="Credit Limit"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Address Line2"
+                disabled={this.state.disableFormElements}
+                name="addressLine2"
+                validators={["required"]}
+                errorMessages={["AddressLine2 Required"]}
+                value={this.state.addressLine2}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
 
-          {/* <Tooltip title="Save" aria-label="Add" >
-                        <Button variant="contained" color="primary" onClick={this.submitform}>Save</Button>
-                    </Tooltip>
-                    <Button variant="contained" color="primary" onClick={this.clearForm}>Clear</Button>
-                    <Button variant="contained" color="primary" onClick={this.closeForm}>Close</Button> */}
-          <Button onClick={this.submitform} color="primary">
-            Save
-          </Button>
-          <Button onClick={this.clearForm} color="primary">
-            Clear
-          </Button>
-          <Button onClick={this.closeForm} color="primary">
-            Cancel
-          </Button>
-        </form>
-      </div>
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Address Line3"
+                disabled={this.state.disableFormElements}
+                name="addressLine3"
+                validators={["required"]}
+                errorMessages={["AddressLine3 Required"]}
+                value={this.state.addressLine3}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
+
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Mobile Numer"
+                disabled={this.state.disableFormElements}
+                name="mobileNumer"
+                validators={["required"]}
+                errorMessages={["Mobile Numer Required"]}
+                value={this.state.mobileNumer}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
+
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Home Phone"
+                disabled={this.state.disableFormElements}
+                name="homePhone"
+                validators={["required"]}
+                errorMessages={["Home Phone Required"]}
+                value={this.state.homePhone}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
+
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                disabled={this.state.disableFormElements}
+                type="number"
+                name="creditLimit"
+                validators={["required"]}
+                errorMessages={["Credit Limit Required"]}
+                value={this.state.creditLimit}
+                onChange={this.handleChange}
+                label="Credit Limit"
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
+          </GridItem>
+          <GridItem>
+            <div style={imageContainer}>
+              <div>
+                {this.state.imageUrl === "" ? (
+                  <Camera style={imageViewer} />
+                ) : (
+                  <img style={imageViewer} src={this.state.imageUrl} />
+                )}
+              </div>
+            </div>
+            <br />
+            <FormControl className={classes.formControl}>
+              <input
+                disabled={this.state.disableFormElements}
+                accept="image/*"
+                type="file"
+                onChange={() => this.uploadFile()}
+                id="customerImage"
+              />
+            </FormControl>
+            <br />
+          </GridItem>
+        </GridContainer>
+      </ValidatorForm>
+      //   </GridItem>
+      // </GridContainer>
     );
   }
 }
 
-CustomerForm.propTypes = {
-  classes: PropTypes.object.isRequired
-};
-
-export default withStyles(styles)(CustomerForm);
+export default withStyles(customInputStyle)(CustomerForm);

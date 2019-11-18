@@ -1,85 +1,177 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import Input from "@material-ui/core/Input";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import Button from "@material-ui/core/Button";
 import { API_URL } from "../properties/applicationProperties";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Checkbox from "@material-ui/core/Checkbox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import "../css/pos.css";
+import Input from "@material-ui/core/Input";
 import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import Chip from "@material-ui/core/Chip";
+import InputLabel from "@material-ui/core/InputLabel";
+import Camera from "@material-ui/icons/CameraEnhance";
 import {
   ValidatorForm,
   TextValidator,
   SelectValidator
 } from "react-material-ui-form-validator";
+import GridItem from "components/Grid/GridItem.jsx";
+import GridContainer from "components/Grid/GridContainer.jsx";
+import Typography from "@material-ui/core/Typography";
+import customInputStyle from "assets/jss/material-dashboard-react/components/customInputStyle.jsx";
 
-const styles = theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
-  },
-  card: {
-    maxWidth: 345
-  },
-  media: {
-    //  object-fit is not supported by IE 11.
-    objectFit: "cover"
-  }
-});
-
+function TabContainer(props) {
+  return (
+    <Typography component="div" style={{ padding: 8 * 3 }}>
+      {props.children}
+    </Typography>
+  );
+}
 class ProductForm extends React.Component {
   state = {
-    ...this.props.formData,
-    mode: this.props.mode,
+    imageUrl: "",
+    venderTaxes: [],
+    tabValue: 0,
+    productType: 0,
     productCategoryList: []
   };
-
+  resetForm = () => {
+    this.refs.form.resetValidations();
+  };
+  handleTabChange = (event, newValue) => {
+    this.setState({ tabValue: newValue });
+  };
+  handleChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
+  };
   handleChangeByName = name => event => {
     this.setState({ [name]: event.target.checked });
   };
+  handleChangeForVenderTaxes = event => {
+    console.log("event.target.value" + event.target.value);
+    const value = [];
+    for (let i = 0, l = event.target.value.length; i < l; i += 1) {
+      value.push(event.target.value[i]);
+    }
 
-  handleChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
+    this.setState({ venderTaxes: value });
+    // this.state.venderTaxes.push(event.target.value);
+    // this.setState({ [event.target.name]: event.target.value });
+  };
+
+  componentDidMount() {
+    this.getProductCategory();
+  }
+
+  submitform = () => {
+    this.refs.form.submit();
+  };
+  enableEditMode = () => {
+    this.setState({
+      saveMode: "Update"
+    });
+  };
+
+  enableAddMode = () => {
+    this.setState({
+      saveMode: "Add"
+    });
   };
 
   clearForm = () => {
     this.setState({
-      active: false,
-      barcode: "",
-      cost: 0,
-      productCode: "",
+      canBeSold: false,
+      canBePurchased: false,
       productName: "",
-      quantity: 0,
-      salePrice: 0
+      productType: "",
+      productCategory: 0,
+      internalReference: "",
+      barcode: "",
+      internalNotes: "",
+      salePrice: "0.00",
+      cost: "0.00",
+      active: false,
+      quantity: "0.00",
+      imageUrl: "",
+      availableInPos: false,
+      makeToOrder: false,
+      customerLeadTime: "0.00",
+      descDelOrder: "",
+      descReceipt: "",
+      weight: "0.00",
+      volume: "0.00",
+      responsible: 0
     });
   };
-  submitform = () => {
+
+  setFormData = dataRetrived => {
+    console.log("dataRetrived", dataRetrived);
+    this.setState({ ...dataRetrived });
+    this.disableFormElements();
+    console.log("makeToOrder Value", this.state.makeToOrder);
+  };
+  disableFormElements = () => {
+    this.setState({ disableFormElements: true });
+  };
+
+  enableFormElements = () => {
+    this.setState({ disableFormElements: false });
+  };
+  deleteProduct = () => {
+    fetch(API_URL + "/deleteProduct/" + this.state.id, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token"),
+        "Access-Control-Allow-Origin": "*"
+      },
+      method: "DELETE"
+    })
+      .then(response => {
+        if (response.status === 200) {
+          this.props.reloadFunction();
+          this.props.showNotification("Deleted Successfully", "success");
+        } else {
+          console.log("Error Saving Data");
+          this.props.showNotification("Error on deleting data", "danger");
+        }
+      })
+      .catch(error => {
+        console.log("error Saving Data catch" + error);
+        this.props.showNotification("Error on deleting data", "danger");
+      });
+  };
+
+  save = () => {
     const product = {
-      active: this.state.active,
-      barcode: this.state.barcode,
-      cost: this.state.cost,
-      productCategory: this.state.productCategory,
-      productCode: this.state.productCode,
+      canBeSold: this.state.canBeSold,
+      canBePurchased: this.state.canBePurchased,
       productName: this.state.productName,
       productType: this.state.productType,
-      quantity: this.state.quantity,
+      productCategory: this.state.productCategory,
+      internalReference: this.state.internalReference,
+      barcode: this.state.barcode,
+      internalNotes: this.state.internalNotes,
       salePrice: this.state.salePrice,
-      imageUrl: this.state.imageUrl
+      cost: this.state.cost,
+      active: this.state.active,
+      quantity: this.state.quantity,
+      imageUrl: this.state.imageUrl,
+      availableInPos: this.state.availableInPos,
+      makeToOrder: this.state.makeToOrder,
+      customerLeadTime: this.state.customerLeadTime,
+      descDelOrder: this.state.descDelOrder,
+      descReceipt: this.state.descReceipt,
+      weight: this.state.weight,
+      volume: this.state.volume,
+      responsible: this.state.responsible
     };
-    let requestMethod = this.state.mode === "Update" ? "PUT" : "POST";
+    let requestMethod = this.state.saveMode === "Update" ? "PUT" : "POST";
     fetch(
       API_URL +
-        (this.state.mode === "Update"
+        (this.state.saveMode === "Update"
           ? "/saveProduct/" + this.state.id
           : "/saveProduct"),
       {
@@ -93,21 +185,20 @@ class ProductForm extends React.Component {
     )
       .then(response => {
         if (response.status === 201 || response.status === 200) {
-          this.closeForm();
-          this.props.getDataFunction(0);
-          // this.clearForm();
+          this.disableFormElements();
+          this.props.reloadFunction();
+          this.props.showNotification("Saved Successfully", "success");
+          this.props.getProductByLocation(response.headers.get("Location"));
+          this.props.disableSaveButtons(true);
         } else {
           console.log("Error Saving Data");
+          this.props.showNotification("Error on saving data", "danger");
         }
       })
       .catch(error => {
-        console.log("error Saving Data catch" + error);
+        this.props.showNotification("Error on saving data", "danger");
       });
   };
-  closeForm = () => {
-    this.props.closefunction();
-  };
-
   uploadFile = () => {
     console.log("File Upload Finction call");
     let file = document.getElementById("productImage").files[0];
@@ -135,213 +226,470 @@ class ProductForm extends React.Component {
         console.log("error Saving Data catch" + error);
       });
   };
+  getProductCategory = () => {
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        const rawData = dataRetrived._embedded.productCategoryGetList;
 
+        this.setState({
+          productCategoryList: rawData
+        });
+      })
+      .catch(err => {
+        // Do something for an error here
+        console.log("Error", err);
+      });
+  };
   render() {
+    const imageContainer = {
+      boxShadow: "10px 10px 5px grey",
+      border: "0.5px solid black",
+      display: "block",
+      width: "105px",
+      height: "105px"
+    };
+    const imageViewer = {
+      display: "block",
+      width: "100px",
+      height: "100px",
+      padding: "2px"
+    };
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+      PaperProps: {
+        style: {
+          maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+          width: 250
+        }
+      }
+    };
+    const names = [
+      "Oliver Hansen",
+      "Van Henry",
+      "April Tucker",
+      "Ralph Hubbard",
+      "Omar Alexander",
+      "Carlos Abbott",
+      "Miriam Wagner",
+      "Bradley Wilkerson",
+      "Virginia Andrews",
+      "Kelly Snyder"
+    ];
     const { classes } = this.props;
-    const { email } = this.state;
     return (
-      <div>
-        <ValidatorForm
-          ref="form"
-          onSubmit={this.submitform}
-          onError={errors => console.log(errors)}
-        >
-          <div className="pos">
-            <article
-              className="product"
-              data-product-id="2"
-              aria-labelledby="article_product_2"
-              tabIndex="0"
-            >
-              <div className="product-img">
-                <img alt="Product " src={this.state.imageUrl} />
-                <span className="price-tag" />
-              </div>
-              <div className="product-name" id="article_product_2" />
-            </article>
-          </div>
-          <br />
-          <FormControl className={classes.formControl}>
-            <input
-              type="file"
-              onChange={() => this.uploadFile()}
-              id="productImage"
-            />
-          </FormControl>
-          <br />
-          <FormControl className={classes.formControl}>
+      <ValidatorForm
+        ref="form"
+        onSubmit={this.save}
+        onError={errors => console.log(errors)}
+      >
+        <GridContainer>
+          <GridItem>
+            <FormControl required className={classes.formControl}>
+              <h2>Product Name</h2>
+              <TextValidator
+                disabled={this.state.disableFormElements}
+                name="productName"
+                validators={["required"]}
+                errorMessages={["Product Name Required"]}
+                value={this.state.productName}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
             <FormControlLabel
               control={
-                <Switch
-                  checked={this.state.active}
-                  name="active"
-                  onChange={this.handleChangeByName("active")}
-                  label="Active"
+                <Checkbox
+                  disabled={this.state.disableFormElements}
+                  name="canBeSold"
+                  onChange={this.handleChangeByName("canBeSold")}
                   color="primary"
-                >
-                  {" "}
-                </Switch>
+                  checked={this.state.canBeSold == true}
+                />
               }
-              label="Active"
+              label="Can be Sold"
             />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              name="barcode"
-              value={this.state.barcode}
-              onChange={this.handleChange}
-              label="Barcode"
-              validators={["required"]}
-              errorMessages={["Barcode Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
+            <br />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  disabled={this.state.disableFormElements}
+                  onChange={this.handleChangeByName("canBePurchased")}
+                  color="primary"
+                  name="canBePurchased"
+                  checked={this.state.canBePurchased == true}
+                />
+              }
+              label="Can be Purchased"
             />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              type="number"
-              name="cost"
-              value={this.state.cost}
-              onChange={this.handleChange}
-              label="Cost"
-              validators={["required"]}
-              errorMessages={["Cost Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <SelectValidator
-              name="productCategory"
-              label="Product Category"
-              value={this.state.productCategory}
-              onChange={this.handleChange}
-              validators={["required"]}
-              errorMessages={["Product Category Required"]}
-              input={<Input name="productCategory" id="productCategory" />}
-              InputLabelProps={{
-                shrink: true
-              }}
-            >
-              <MenuItem value="0">All</MenuItem>
-              {this.props.productCategoryList.map(
-                n => (
-                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
-                ),
-                this
-              )}
-            </SelectValidator>
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              name="productCode"
-              value={this.state.productCode}
-              onChange={this.handleChange}
-              label="Product Code"
-              validators={["required"]}
-              errorMessages={["Product Code Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              name="productName"
-              validators={["required"]}
-              errorMessages={["Product Name Required"]}
-              value={this.state.productName}
-              onChange={this.handleChange}
-              label="Product Name"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <SelectValidator
-              label="Product Type"
-              name="productType"
-              validators={["required"]}
-              errorMessages={["Product Type Required"]}
-              value={this.state.productType}
-              onChange={this.handleChange}
-              input={<Input name="productType" id="productType" />}
-              InputLabelProps={{
-                shrink: true
-              }}
-            >
-              <MenuItem value="0">All</MenuItem>
-              {PRODUCT_TYPE_LIST.map(
-                n => (
-                  <MenuItem value={n}>{n}</MenuItem>
-                ),
-                this
-              )}
-            </SelectValidator>
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              type="number"
-              name="quantity"
-              validators={["required"]}
-              errorMessages={["Quantity Required"]}
-              value={this.state.quantity}
-              onChange={this.handleChange}
-              label="Quantity"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <FormControl required className={classes.formControl}>
-            <TextValidator
-              type="number"
-              name="salePrice"
-              validators={["required"]}
-              errorMessages={["Sale Price Required"]}
-              value={this.state.salePrice}
-              onChange={this.handleChange}
-              label="Sale Price"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
-          <Button type="submit" color="primary">
-            Save
-          </Button>
-          {/* <Button onClick={this.submitform} color="primary">
-            Save
-          </Button> */}
-          <Button onClick={this.clearForm} color="primary">
-            Clear
-          </Button>
-          <Button onClick={this.closeForm} color="primary">
-            Cancel
-          </Button>
-        </ValidatorForm>
-      </div>
+          </GridItem>
+          <GridItem>
+            <div style={imageContainer}>
+              <div>
+                {this.state.imageUrl === "" ? (
+                  <Camera style={imageViewer} />
+                ) : (
+                  <img style={imageViewer} src={this.state.imageUrl} />
+                )}
+              </div>
+            </div>
+            <br />
+            <FormControl className={classes.formControl}>
+              <input
+                disabled={this.state.disableFormElements}
+                accept="image/*"
+                type="file"
+                onChange={() => this.uploadFile()}
+                id="productImage"
+              />
+            </FormControl>
+            <br />
+          </GridItem>
+        </GridContainer>
+
+        <Tabs
+          value={this.state.tabValue}
+          indicatorColor="primary"
+          textColor="primary"
+          onChange={this.handleTabChange}
+        >
+          <Tab label="General Information" />
+          <Tab label="Sales" />
+          <Tab label="Purchase" />
+          <Tab label="Inventory" />
+        </Tabs>
+        {/* General Information Tab */}
+        {this.state.tabValue === 0 && (
+          <TabContainer>
+            <GridContainer>
+              <GridItem>
+                <FormControl required className={classes.formControl}>
+                  <SelectValidator
+                    disabled={this.state.disableFormElements}
+                    label="Product Type"
+                    name="productType"
+                    validators={["required"]}
+                    errorMessages={["Product Type Required"]}
+                    value={this.state.productType}
+                    onChange={this.handleChange}
+                    input={<Input name="productType" id="productType" />}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  >
+                    <MenuItem value="0">All</MenuItem>
+                    {PRODUCT_TYPE_LIST.map(
+                      n => (
+                        <MenuItem value={n}>{n}</MenuItem>
+                      ),
+                      this
+                    )}
+                  </SelectValidator>
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <SelectValidator
+                    disabled={this.state.disableFormElements}
+                    name="productCategory"
+                    label="Product Category"
+                    value={this.state.productCategory}
+                    onChange={this.handleChange}
+                    validators={["required"]}
+                    errorMessages={["Product Category Required"]}
+                    input={
+                      <Input name="productCategory" id="productCategory" />
+                    }
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  >
+                    <MenuItem value="0">All</MenuItem>
+                    {this.state.productCategoryList.map(
+                      n => (
+                        <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
+                      ),
+                      this
+                    )}
+                  </SelectValidator>
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    name="internalReference"
+                    validators={["required"]}
+                    errorMessages={["Internal Reference Required"]}
+                    onChange={this.handleChange}
+                    value={this.state.internalReference}
+                    label="Internal Reference"
+                    margin="dense"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    name="barcode"
+                    value={this.state.barcode}
+                    onChange={this.handleChange}
+                    label="Barcode"
+                    validators={["required"]}
+                    errorMessages={["Barcode Required"]}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    name="internalNotes"
+                    value={this.state.internalNotes}
+                    onChange={this.handleChange}
+                    label="Internal Notes"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+              </GridItem>
+              <GridItem>
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="salePrice"
+                    validators={["required"]}
+                    errorMessages={["Sale Price Required"]}
+                    value={this.state.salePrice}
+                    onChange={this.handleChange}
+                    label="Sale Price"
+                    margin="dense"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="cost"
+                    value={this.state.cost}
+                    onChange={this.handleChange}
+                    label="Cost"
+                    validators={["required"]}
+                    errorMessages={["Cost Required"]}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+
+                <br />
+              </GridItem>
+            </GridContainer>
+          </TabContainer>
+        )}
+        {/* Sales Tab */}
+        {this.state.tabValue === 1 && (
+          <TabContainer>
+            <GridContainer>
+              <GridItem>
+                <h2>Point Of Sale</h2>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      disabled={this.state.disableFormElements}
+                      onChange={this.handleChangeByName("availableInPos")}
+                      color="primary"
+                      checked={this.state.availableInPos == true}
+                      name="availableInPos"
+                    />
+                  }
+                  label="Available in POS"
+                />
+              </GridItem>
+            </GridContainer>
+          </TabContainer>
+        )}
+        {/* Purchase Tab */}
+        {this.state.tabValue === 2 && (
+          <TabContainer>
+            <GridContainer>
+              <GridItem>
+                <h2>Vendor Bills</h2>
+                <FormControl required className={classes.formControl}>
+                  <InputLabel htmlFor="venderTaxes">Vender Taxes</InputLabel>
+                  <Select
+                    multiple
+                    label="Vender Taxes"
+                    value={this.state.venderTaxes}
+                    onChange={this.handleChangeForVenderTaxes}
+                    input={<Input id="venderTaxes" />}
+                    renderValue={selected => (
+                      <div className={classes.chips}>
+                        {selected.map(value => (
+                          <Chip
+                            key={value}
+                            label={value}
+                            className={classes.chip}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    MenuProps={MenuProps}
+                  >
+                    {names.map(name => (
+                      <MenuItem
+                        key={name}
+                        value={name}
+                        // style={getStyles(name, personName, theme)}
+                      >
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </GridItem>
+            </GridContainer>
+          </TabContainer>
+        )}
+        {/* Inventory Tab */}
+        {this.state.tabValue === 3 && (
+          <TabContainer>
+            <GridContainer>
+              <GridItem>
+                <h2>Operations</h2>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      disabled={this.state.disableFormElements}
+                      onChange={this.handleChangeByName("makeToOrder")}
+                      color="primary"
+                      checked={this.state.makeToOrder == true}
+                      name="makeToOrder"
+                    />
+                  }
+                  label="Make To Order"
+                />
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="customerLeadTime"
+                    value={this.state.customerLeadTime}
+                    onChange={this.handleChange}
+                    label="Customer Lead Time(days)"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    name="descDelOrder"
+                    value={this.state.descDelOrder}
+                    onChange={this.handleChange}
+                    label="Description for Delivery Orders"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    name="descReceipt"
+                    value={this.state.descReceipt}
+                    onChange={this.handleChange}
+                    label="Description for Receipts"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+              </GridItem>
+              <GridItem>
+                <h2>Logistics</h2>
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="weight"
+                    value={this.state.weight}
+                    onChange={this.handleChange}
+                    label="Weight"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="volume"
+                    value={this.state.volume}
+                    onChange={this.handleChange}
+                    label="Volume"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <SelectValidator
+                    disabled={this.state.disableFormElements}
+                    value={this.state.responsible}
+                    label="Responsible"
+                    name="responsible"
+                    onChange={this.handleChange}
+                    input={<Input name="responsible" id="responsible" />}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  >
+                    <MenuItem value="0">All</MenuItem>
+                    {/* {PRODUCT_TYPE_LIST.map(
+                      n => (
+                        <MenuItem value={n}>{n}</MenuItem>
+                      ),
+                      this
+                    )} */}
+                  </SelectValidator>
+                </FormControl>
+              </GridItem>
+            </GridContainer>
+          </TabContainer>
+        )}
+      </ValidatorForm>
+      //   </GridItem>
+      // </GridContainer>
     );
   }
 }
 
-ProductForm.propTypes = {
-  classes: PropTypes.object.isRequired
-};
-
-export default withStyles(styles)(ProductForm);
+export default withStyles(customInputStyle)(ProductForm);

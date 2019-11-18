@@ -1,9 +1,11 @@
+// @material-ui/icons
 import Dashboard from "@material-ui/icons/Dashboard";
 import Person from "@material-ui/icons/Person";
 import LibraryBooks from "@material-ui/icons/LibraryBooks";
 import BubbleChart from "@material-ui/icons/BubbleChart";
 import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
+// core components/views for Admin layout
 import DashboardPage from "views/Dashboard/Dashboard.jsx";
 import UserProfile from "views/UserProfile/UserProfile.jsx";
 import Customer from "ERP/Pages/CustomerPage.js";
@@ -16,9 +18,7 @@ import Icons from "views/Icons/Icons.jsx";
 import Maps from "views/Maps/Maps.jsx";
 import NotificationsPage from "views/Notifications/Notifications.jsx";
 
-//This defines dashboard Menu Items
-
-const dashboardRoutes = [
+const dashBoardRoutes = [
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -98,4 +98,4 @@ const dashboardRoutes = [
   }
 ];
 
-export default dashboardRoutes;
+export default dashBoardRoutes;
