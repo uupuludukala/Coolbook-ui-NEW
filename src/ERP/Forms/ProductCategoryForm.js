@@ -1,69 +1,130 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
-import Input from "@material-ui/core/Input";
-import FormControl from "@material-ui/core/FormControl";
-import Button from "@material-ui/core/Button";
 import { API_URL } from "../properties/applicationProperties";
-import Snackbar from "components/Snackbar/Snackbar.jsx";
-import AddAlert from "@material-ui/icons/AddAlert";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
+import Checkbox from "@material-ui/core/Checkbox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import MenuItem from "@material-ui/core/MenuItem";
+import Input from "@material-ui/core/Input";
+import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import Chip from "@material-ui/core/Chip";
+import InputLabel from "@material-ui/core/InputLabel";
+import Camera from "@material-ui/icons/CameraEnhance";
 import {
   ValidatorForm,
   TextValidator,
   SelectValidator
 } from "react-material-ui-form-validator";
+import GridItem from "components/Grid/GridItem.jsx";
+import GridContainer from "components/Grid/GridContainer.jsx";
+import Typography from "@material-ui/core/Typography";
+import customInputStyle from "assets/jss/material-dashboard-react/components/customInputStyle.jsx";
 
-const styles = theme => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap"
-  },
-  formControl: {
-    width: "50%",
-    margin: theme.spacing.unit,
-    minWidth: 120,
-    fullWidth: false,
-    wrap: "nowrap"
-  }
-});
-
-class ProductForm extends React.Component {
+function TabContainer(props) {
+  return (
+    <Typography component="div" style={{ padding: 8 * 3 }}>
+      {props.children}
+    </Typography>
+  );
+}
+class ProductCategoryForm extends React.Component {
   state = {
-    ...this.props.formData,
-    mode: this.props.mode,
-    productCategoryList: [],
-    isNotificationOpen: false
+    imageUrl: "",
+    venderTaxes: [],
+    tabValue: 0,
+    productType: 0,
+    productCategoryList: []
   };
-
+  resetForm = () => {
+    this.refs.form.resetValidations();
+  };
+  handleTabChange = (event, newValue) => {
+    this.setState({ tabValue: newValue });
+  };
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
+  };
+  handleChangeByName = name => event => {
+    this.setState({ [name]: event.target.checked });
+  };
+
+  componentDidMount() {
+    this.getProductCategory();
+  }
+
+  submitform = () => {
+    this.refs.form.submit();
+  };
+  enableEditMode = () => {
+    this.setState({
+      saveMode: "Update"
+    });
+  };
+
+  enableAddMode = () => {
+    this.setState({
+      saveMode: "Add"
+    });
   };
 
   clearForm = () => {
     this.setState({
-      parentCategory: "",
+      parentCategory: 0,
       productCatCode: "",
       productCatName: ""
     });
   };
-  submitform = () => {
-    if (this.state.id == this.state.parentCategory) {
-      this.setState({
-        notification: "Cant Create recursive categories",
-        isNotificationOpen: true
+
+  setFormData = dataRetrived => {
+    console.log("dataRetrived", dataRetrived);
+    this.setState({ ...dataRetrived });
+    this.disableFormElements();
+  };
+  disableFormElements = () => {
+    this.setState({ disableFormElements: true });
+  };
+
+  enableFormElements = () => {
+    this.setState({ disableFormElements: false });
+  };
+  deleteProductCategory = () => {
+    fetch(API_URL + "/deleteProductCategory/" + this.state.id, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + window.localStorage.getItem("access_token"),
+        "Access-Control-Allow-Origin": "*"
+      },
+      method: "DELETE"
+    })
+      .then(response => {
+        if (response.status === 200) {
+          this.props.reloadFunction();
+          this.props.showNotification("Deleted Successfully", "success");
+        } else {
+          console.log("Error Saving Data");
+          this.props.showNotification("Error on deleting data", "danger");
+        }
+      })
+      .catch(error => {
+        console.log("error Saving Data catch" + error);
+        this.props.showNotification("Error on deleting data", "danger");
       });
-    }
-    const productCategory = {
+  };
+
+  save = () => {
+    const product = {
       parentCategory: this.state.parentCategory,
       productCatCode: this.state.productCatCode,
       productCatName: this.state.productCatName
     };
-    let requestMethod = this.state.mode === "Update" ? "PUT" : "POST";
+    let requestMethod = this.state.saveMode === "Update" ? "PUT" : "POST";
     fetch(
       API_URL +
-        (this.state.mode === "Update"
-          ? "/updateProductCategory/" + this.state.id
+        (this.state.saveMode === "Update"
+          ? "/saveProductCategory/" + this.state.id
           : "/saveProductCategory"),
       {
         headers: {
@@ -71,125 +132,158 @@ class ProductForm extends React.Component {
           Authorization: "Bearer " + window.localStorage.getItem("access_token")
         },
         method: requestMethod,
-        body: JSON.stringify(productCategory)
+        body: JSON.stringify(product)
       }
     )
       .then(response => {
         if (response.status === 201 || response.status === 200) {
-          this.closeForm();
-          this.props.getDataFunction(0);
-          this.props.getProductCategoryListFucntion();
-          // this.clearForm();
+          this.disableFormElements();
+          this.props.reloadFunction();
+          this.props.showNotification("Saved Successfully", "success");
+          this.props.getProductCategoryByLocation(
+            response.headers.get("Location")
+          );
+          this.props.disableSaveButtons(true);
         } else {
           console.log("Error Saving Data");
+          this.props.showNotification("Error on saving data", "danger");
         }
       })
       .catch(error => {
-        console.log("error Saving Data catch" + error);
+        this.props.showNotification("Error on saving data", "danger");
       });
   };
-  closeForm = () => {
-    this.props.closefunction();
+
+  getProductCategory = () => {
+    fetch(API_URL + "/getAllProductCategory", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        const rawData = dataRetrived._embedded.productCategoryGetList;
+
+        this.setState({
+          productCategoryList: rawData
+        });
+      })
+      .catch(err => {
+        // Do something for an error here
+        console.log("Error", err);
+      });
   };
-
   render() {
+    const imageContainer = {
+      boxShadow: "10px 10px 5px grey",
+      border: "0.5px solid black",
+      display: "block",
+      width: "105px",
+      height: "105px"
+    };
+    const imageViewer = {
+      display: "block",
+      width: "100px",
+      height: "100px",
+      padding: "2px"
+    };
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+      PaperProps: {
+        style: {
+          maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+          width: 250
+        }
+      }
+    };
+    const names = [
+      "Oliver Hansen",
+      "Van Henry",
+      "April Tucker",
+      "Ralph Hubbard",
+      "Omar Alexander",
+      "Carlos Abbott",
+      "Miriam Wagner",
+      "Bradley Wilkerson",
+      "Virginia Andrews",
+      "Kelly Snyder"
+    ];
     const { classes } = this.props;
-
     return (
-      <div>
-        <ValidatorForm
-          ref="form"
-          onSubmit={this.submitform}
-          onError={errors => console.log(errors)}
-        >
-          <FormControl required className={classes.formControl}>
-            <SelectValidator
-              label="Parent Category"
-              value={this.state.parentCategory}
-              onChange={this.handleChange}
-              validators={["required"]}
-              errorMessages={["Parent Category Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
-              name="parentCategory"
-              input={<Input name="parentCategory" id="parentCategory" />}
-            >
-              <MenuItem value="0">All</MenuItem>
-              {this.props.productCategoryList.map(
-                n => (
-                  <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
-                ),
-                this
-              )}
-            </SelectValidator>
-          </FormControl>
-          <FormControl className={classes.formControl}>
-            <TextValidator
-              name="productCatCode"
-              value={this.state.productCatCode}
-              onChange={this.handleChange}
-              label="Product Category Code"
-              validators={["required"]}
-              errorMessages={["Product Category Code Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <br />
+      <ValidatorForm
+        ref="form"
+        onSubmit={this.save}
+        onError={errors => console.log(errors)}
+      >
+        <GridContainer>
+          <GridItem>
+            <FormControl required className={classes.formControl}>
+              <SelectValidator
+                disabled={this.state.disableFormElements}
+                name="parentCategory"
+                label="Parent Category"
+                value={this.state.parentCategory}
+                onChange={this.handleChange}
+                validators={["required"]}
+                errorMessages={["Product Category Required"]}
+                input={<Input name="parentCategory" id="parentCategory" />}
+                InputLabelProps={{
+                  shrink: true
+                }}
+              >
+                <MenuItem value="0">All</MenuItem>
+                {this.state.productCategoryList.map(
+                  n => (
+                    <MenuItem value={n.id}>{n.productCatCode}</MenuItem>
+                  ),
+                  this
+                )}
+              </SelectValidator>
+            </FormControl>
+            <br />
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                label="Category Code"
+                disabled={this.state.disableFormElements}
+                name="productCatCode"
+                validators={["required"]}
+                errorMessages={["Product Name Required"]}
+                value={this.state.productCatCode}
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
 
-          <FormControl className={classes.formControl}>
-            <TextValidator
-              name="productCatName"
-              value={this.state.productCatName}
-              onChange={this.handleChange}
-              label="Product Category Name"
-              validators={["required"]}
-              errorMessages={["Product Category Name Required"]}
-              InputLabelProps={{
-                shrink: true
-              }}
-              margin="dense"
-            />
-          </FormControl>
-          <br />
-
-          {/* <Tooltip title="Save" aria-label="Add" >
-                        <Button variant="contained" color="primary" onClick={this.submitform}>Save</Button>
-                    </Tooltip>
-                    <Button variant="contained" color="primary" onClick={this.clearForm}>Clear</Button>
-                    <Button variant="contained" color="primary" onClick={this.closeForm}>Close</Button> */}
-          <Button type="submit" color="primary">
-            Save
-          </Button>
-          <Button onClick={this.clearForm} color="primary">
-            Clear
-          </Button>
-          <Button onClick={this.closeForm} color="primary">
-            Cancel
-          </Button>
-        </ValidatorForm>
-        <Snackbar
-          place="tl"
-          color="info"
-          icon={AddAlert}
-          message={this.state.notification}
-          open={this.state.isNotificationOpen}
-          closeNotification={() => this.setState({ isNotificationOpen: false })}
-          close
-        />
-      </div>
+            <FormControl required className={classes.formControl}>
+              <TextValidator
+                disabled={this.state.disableFormElements}
+                name="productCatName"
+                validators={["required"]}
+                errorMessages={["Product Name Required"]}
+                value={this.state.productCatName}
+                label="Category Name"
+                onChange={this.handleChange}
+                margin="dense"
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </FormControl>
+            <br />
+          </GridItem>
+        </GridContainer>
+      </ValidatorForm>
+      //   </GridItem>
+      // </GridContainer>
     );
   }
 }
 
-ProductForm.propTypes = {
-  classes: PropTypes.object.isRequired
-};
-
-export default withStyles(styles)(ProductForm);
+export default withStyles(customInputStyle)(ProductCategoryForm);

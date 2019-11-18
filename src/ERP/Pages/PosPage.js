@@ -181,7 +181,7 @@ class PosPage extends React.Component {
     let searchList = [];
     ReactDOM.render("", document.getElementById("posSearchList"));
     console.log(productCode);
-    fetch(API_URL + "/getAllProduct?productCode=" + productCode, {
+    fetch(API_URL + "/getAllProduct?internalReference=" + productCode, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -243,7 +243,7 @@ class PosPage extends React.Component {
     });
   };
   render() {
-    const { classes } = this.props;
+    // const { classes } = this.props;
     let posDialogAction;
     if (this.state.isPOSPage) {
       posDialogAction = (

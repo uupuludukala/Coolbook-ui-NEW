@@ -18,30 +18,11 @@ import Admin from "layouts/Admin.jsx";
 import { AUTH_URL } from "./ERP/properties/applicationProperties";
 
 import { withStyles } from "@material-ui/core/styles";
-// import { history } from "react-router-dom";
-import { createBrowserHistory } from "history";
-import mainRoutes from "routes.js";
 
-import { browserHistory } from "react-router";
+import { createBrowserHistory } from "history";
 
 import "assets/css/material-dashboard-react.css?v=1.6.0";
 
-// const hist = createBrowserHistory();
-// function MadeWithLove() {
-//   return (
-//     <Typography variant="body2" color="textSecondary" align="center">
-//       {"Cool Book For"}
-//       <Link color="inherit" href="https://furnico.lk/">
-//         Furnico
-//       </Link>
-//       {" team."}
-//     </Typography>
-//   );
-// }
-
-// function login() {
-//   return <Route path="/admin" component={Admin} />;
-// }
 const styles = makeStyles(theme => ({
   "@global": {
     body: {
@@ -69,8 +50,8 @@ const styles = makeStyles(theme => ({
 
 class Login extends React.Component {
   state = {
-    username: "",
-    password: ""
+    username: "furnico",
+    password: "furnico"
   };
   handleChange = event => {
     this.setState({ [event.target.name]: event.target.value });
@@ -115,20 +96,8 @@ class Login extends React.Component {
         console.log("error Saving Data catch" + error);
       });
     const hist = createBrowserHistory();
-    // ReactDOM.render(
-    //   <Router history={hist}>
-    //     <Switch>
-    //       <Route path="/admin" component={Admin} />
-    //       <Redirect from="/" to="/admin/dashboard" />
-    //     </Switch>
-    //   </Router>,
-    //   document.getElementById("root")
-    // );
-
-    // browserHistory.push("/sessionstate1");
   };
   render() {
-    // const classes = this.props;
     const classes = styles;
     return (
       <Container component="main" maxWidth="xs">

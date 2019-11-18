@@ -12,7 +12,7 @@ import Navbar from "components/Navbars/Navbar.jsx";
 import Sidebar from "components/Sidebar/Sidebar.jsx";
 import FixedPlugin from "components/FixedPlugin/FixedPlugin.jsx";
 
-import routes from "routes.js";
+import routes from "dashBoardRoutes.js";
 
 import dashboardStyle from "assets/jss/material-dashboard-react/layouts/dashboardStyle.jsx";
 
@@ -91,6 +91,7 @@ class Dashboard extends React.Component {
     const { classes, ...rest } = this.props;
     return (
       <div className={classes.wrapper}>
+        {/* This is to render the side menu */}
         <Sidebar
           routes={routes}
           logoText={"Cool Book V1.0"}
@@ -102,17 +103,20 @@ class Dashboard extends React.Component {
           {...rest}
         />
         <div className={classes.mainPanel} ref="mainPanel">
+          {/* this indicates the current navigation */}
           <Navbar
             routes={routes}
             handleDrawerToggle={this.handleDrawerToggle}
             {...rest}
           />
           {/* On the /maps route we want the map to be on full screen - this is not possible if the content and conatiner classes are present because they have some paddings which would make the map smaller */}
+          {/* this is the place where page is loading when click the menu */}
           {this.getRoute() ? (
             <div className={classes.content}>
               <div className={classes.container}>{switchRoutes}</div>
             </div>
           ) : (
+            // </div>
             <div className={classes.map}>{switchRoutes}</div>
           )}
 

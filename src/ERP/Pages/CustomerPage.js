@@ -1,19 +1,15 @@
 import React from "react";
-import DataGrid from "../Components/DataGrid";
-import Fab from "@material-ui/core/Fab";
-import AddIcon from "@material-ui/icons/Add";
+import withStyles from "@material-ui/core/styles/withStyles";
+import GridItem from "components/Grid/GridItem.jsx";
+import GridContainer from "components/Grid/GridContainer.jsx";
+import Card from "components/Card/Card.jsx";
+import Table from "components/Table/Table.jsx";
+import CardBody from "components/Card/CardBody.jsx";
 import CustomerForm from "../Forms/CustomerForm";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContentText from "@material-ui/core/DialogContentText";
+import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
-import FormControl from "@material-ui/core/FormControl";
-import TextField from "@material-ui/core/TextField";
-import { withStyles } from "@material-ui/core/styles";
-import "../css/main.css";
+import Snackbar from "components/Snackbar/Snackbar.jsx";
+
 const styles = theme => ({
   root: {
     display: "flex",
@@ -22,49 +18,44 @@ const styles = theme => ({
 });
 
 class CustomerPage extends React.Component {
-  constructor(props) {
-    const customer = {
-      nicNumber: "",
-      firstName: "",
-      lastName: "",
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
-      mobileNumer: "",
-      homePhone: "",
-      creditLimit: 0
-    };
-    super(props);
-    this.state = {
-      data: [],
-      isOpen: false,
-      mode: "",
-      formData: customer,
-      customer: customer,
-      page: 0,
-      isDltOpen: false,
-      nicNumber: "",
-      firstName: "",
-      lastName: "",
-      addressLine1: "",
-      addressLine2: "",
-      addressLine3: "",
-      mobileNumer: "",
-      homePhone: "",
-      creditLimit: 0
-    };
+  state = {
+    pageSize: 20,
+    data: [],
+    customer: "",
+    isOpenNotification: false
+  };
+
+  closeNotification = () => {
+    console.log("Notification Function");
+    this.setState({
+      isOpenNotification: false
+    });
+  };
+
+  reloadData = () => {
+    this.getCustomer(0, this.state.pageSize);
+  };
+  showNotification = (message, notificationclass) => {
+    this.setState({
+      isOpenNotification: true,
+      notificationMessage: message,
+      notificationclass: notificationclass
+    });
+  };
+
+  componentDidMount() {
+    this.reloadData();
   }
-
-  handleChangeByName = name => event => {
-    this.setState({ [name]: event.target.checked });
+  getSearchParameters = (page, pageSize) => {
+    var parameterString = "page=" + page + "&size=" + pageSize;
+    return parameterString;
   };
 
-  handleChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
-  getCustomer = page => {
-    let searchParameters = this.getSearchParameters(page);
-    console.log("searchParameters", searchParameters);
+  getCustomer = (page, pageSize) => {
+    console.log("Function called Today");
+    this.setState({ pageSize: pageSize });
+    let searchParameters = this.getSearchParameters(page, pageSize);
+
     fetch(API_URL + "/getAllCustomer?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -77,21 +68,20 @@ class CustomerPage extends React.Component {
         if (dataRetrived.page.totalPages !== 0) {
           const rawData = dataRetrived._embedded.customerGetList;
           this.setState({
-            data: rawData,
-            pageSize: dataRetrived.page.size,
-            totalPages: dataRetrived.page.totalPages,
-            totalElements: dataRetrived.page.totalElements,
-            page: dataRetrived.page.number
+            data: rawData
           });
         } else {
           this.setState({
-            data: [],
-            pageSize: dataRetrived.page.size,
-            totalPages: dataRetrived.page.totalPages,
-            totalElements: dataRetrived.page.totalElements,
-            page: dataRetrived.page.number
+            data: []
           });
         }
+        this.setState({
+          pageSize: dataRetrived.page.size,
+          totalPages: dataRetrived.page.totalPages,
+          rowsCount: dataRetrived.page.totalElements,
+          page: dataRetrived.page.number
+        });
+        this.refs.toolBar.renderGrid();
       })
       .catch(err => {
         // Do something for an error here
@@ -99,291 +89,142 @@ class CustomerPage extends React.Component {
       });
   };
 
-  getSearchParameters = page => {
-    var parameterString =
-      "page=" +
-      page +
-      "&barcode=" +
-      this.state.barcode +
-      "&nicNumber=" +
-      this.state.nicNumber +
-      "&firstName=" +
-      this.state.firstName +
-      "&mobileNumer=" +
-      this.state.mobileNumer;
-    console.log("parameterString", parameterString);
-    return parameterString;
+  submitForm = () => {
+    this.refs.customerForm.submitform();
   };
 
-  deleteDialogOpen = id => {
-    console.log("Id is", id);
-    this.setState({
-      isDltOpen: true,
-      deleteItemId: id
-    });
+  deleteSelected = () => {
+    this.refs.customerForm.deleteCustomer();
+  };
+  enableEditMode = () => {
+    this.refs.customerForm.enableEditMode();
+    this.refs.customerForm.enableFormElements();
   };
 
-  deleteCustomer = () => {
-    fetch(API_URL + "/deleteCustomer/" + this.state.deleteItemId, {
+  enableAddMode = () => {
+    this.refs.customerForm.enableAddMode();
+    this.refs.customerForm.clearForm();
+    this.refs.customerForm.enableFormElements();
+  };
+  resetForm = () => {
+    this.refs.customerForm.resetForm();
+  };
+  getSelectedCustomer = id => {
+    fetch(API_URL + "/getCustomerById/" + id, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
-      },
-      method: "DELETE"
+      }
     })
       .then(response => {
-        if (response.status === 200) {
-          this.setState({
-            isDltOpen: false
-          });
-          this.getCustomer(0);
-        } else {
-          console.log("Error Saving Data");
-        }
+        return response.json();
       })
-      .catch(error => {
-        console.log("error Saving Data catch" + error);
+      .then(dataRetrived => {
+        this.refs.toolBar.renderForm();
+        this.refs.customerForm.setFormData(dataRetrived);
+      })
+      .catch(err => {
+        console.log("Error", err);
       });
   };
-  componentDidMount() {
-    this.getCustomer(0);
-  }
-
-  handleFormClose = () => {
-    this.setState({
-      isOpen: false
-    });
+  getCustomerByLocation = location => {
+    fetch(location, {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        this.refs.toolBar.renderForm();
+        this.refs.customerForm.setFormData(dataRetrived);
+      })
+      .catch(err => {
+        console.log("Error", err);
+      });
+  };
+  disableSaveButtons = () => {
+    this.refs.toolBar.disableSaveButtons();
   };
 
-  closeDeleteDialog = () => {
-    this.setState({ isDltOpen: false });
-  };
-
-  renderForm = mode => {
-    if (mode === "Add") this.setState({ formData: this.state.customer });
-    this.setState({
-      isOpen: true,
-      mode: mode
-    });
-  };
-
-  rowSelect = selectedRow => {
-    this.setState({
-      formData: selectedRow
-    });
-    console.log("Forma Data", this.state.formData);
-  };
   render() {
-    const { classes } = this.props;
-    const rows = [
+    const tableHeaders = [
       {
-        id: "nicNumber",
+        id: "customerName",
         numeric: false,
-        disablePadding: true,
-        label: "NIC Number",
-        display: true
-      },
-      {
-        id: "firstName",
-        numeric: false,
-        disablePadding: true,
-        label: "First Name",
-        display: true
-      },
-      {
-        id: "lastName",
-        numeric: false,
-        disablePadding: true,
-        label: "Last Name",
-        display: true
+        label: "Customer Name"
       },
       {
         id: "addressLine1",
         numeric: false,
-        disablePadding: true,
-        label: "Address Line1",
-        display: true
+        label: "Address Line1"
       },
       {
         id: "addressLine2",
-        numeric: false,
-        disablePadding: true,
-        label: "Address Line2",
-        display: true
+        numeric: true,
+        label: "Address Line2"
       },
       {
         id: "addressLine3",
-        numeric: false,
-        disablePadding: true,
-        label: "Address Line3",
-        display: true
+        numeric: true,
+        label: "Address Line3"
       },
       {
         id: "mobileNumer",
-        numeric: false,
-        disablePadding: true,
-        label: "Mobile Numer",
-        display: true
-      },
-      {
-        id: "homePhone",
         numeric: true,
-        disablePadding: false,
-        label: "Home Phone",
-        display: true
-      },
-      {
-        id: "creditLimit",
-        numeric: true,
-        disablePadding: false,
-        label: "Credit Limit",
-        display: true
+        label: "Mobile Numer"
       }
     ];
-    return (
-      <div>
-        <Fab
-          color="primary"
-          aria-label="Add"
-          onClick={() => this.renderForm("Add")}
-        >
-          <AddIcon />
-        </Fab>
-        <div className="formContainer">
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              name="nicNumber"
-              value={this.state.nicNumber}
-              onChange={this.handleChange}
-              label="NIC Number"
-              error={this.state.nicNumberError}
-              helperText={this.state.nicNumberHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              name="firstName"
-              value={this.state.firstName}
-              onChange={this.handleChange}
-              label="First Name"
-              error={this.state.firstNameError}
-              helperText={this.state.firstNameHelperText}
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <FormControl className="formControl">
-            <TextField
-              required={true}
-              error={this.state.mobileNumerError}
-              helperText={this.state.mobileNumerHelperText}
-              name="mobileNumer"
-              value={this.state.mobileNumer}
-              onChange={this.handleChange}
-              label="Mobile Numer"
-              margin="dense"
-              InputLabelProps={{
-                shrink: true
-              }}
-            />
-          </FormControl>
-          <div className="searchFormFieldSeperator" />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => this.getCustomer(0)}
-          >
-            Search
-          </Button>
-        </div>
-        {/* this.state.data.length > 0 && */}
-        {
-          <DataGrid
-            deleteFunction={this.deleteDialogOpen}
-            getDataFunction={this.getCustomer}
-            rows={rows}
-            data={this.state.data}
-            page={this.state.page}
-            totalElements={this.state.totalElements}
-            totalPages={this.setState.totalPages}
-            rowsPerPage={this.state.pageSize}
-            rowSelected={this.rowSelect}
-            rowOnclickFunction={() => this.renderForm("Update")}
-          />
-        }
-        <Dialog
-          fullWidth={true}
-          open={this.state.isOpen}
-          onClose={this.handleFormClose}
-          scroll="paper"
-          disableBackdropClick
-          disableEscapeKeyDown
-          aria-labelledby="scroll-dialog-title"
-        >
-          <DialogTitle id="scroll-dialog-title">
-            {this.state.mode} Customer
-          </DialogTitle>
-          <DialogContent>
-            <CustomerForm
-              getDataFunction={this.getCustomer}
-              closefunction={this.handleFormClose}
-              formData={this.state.formData}
-              mode={this.state.mode}
-            />
-          </DialogContent>
-          {/* <DialogActions>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Save
-                        </Button>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Clear
-                        </Button>
-                        <Button onClick={this.handleFormClose} color="primary">
-                            Cancel
-                        </Button>
 
-                    </DialogActions> */}
-        </Dialog>
-        <Dialog
-          open={this.state.isDltOpen}
-          onClose={this.closeDeleteDialog}
-          scroll="paper"
-          aria-labelledby="scroll-dialog-title"
-        >
-          <DialogTitle>Delete Customer</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Please confirm to delete record
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={this.closeDeleteDialog}
-              variant="contained"
-              color="primary"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={this.deleteCustomer}
-              variant="contained"
-              color="primary"
-            >
-              Ok
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
+    return (
+      <GridContainer>
+        <GridItem xs={12} sm={12} md={12}>
+          <Card>
+            <MasterDataToolbar
+              ref="toolBar"
+              submitForm={this.submitForm}
+              deleteSelected={this.deleteSelected}
+              resetForm={this.resetForm}
+              enableEditModeFuction={this.enableEditMode}
+              enableAddModeFuction={this.enableAddMode}
+              reloadFunction={this.reloadData}
+            />
+
+            <CardBody id="main">
+              <Table
+                rowsPerPageOptions={[5, 10, 20, 25, 50, 100]}
+                rowsCount={this.state.rowsCount}
+                rowsPerPage={this.state.pageSize}
+                page={this.state.page}
+                tableHeaderColor="primary"
+                tableHead={tableHeaders}
+                tableData={this.state.data}
+                getDataFunction={this.getCustomer}
+                getSelectedRowFuction={this.getSelectedCustomer}
+              />
+            </CardBody>
+            <CardBody id="form" style={{ display: "none" }}>
+              <CustomerForm
+                ref="customerForm"
+                reloadFunction={this.reloadData}
+                showNotification={this.showNotification}
+                getCustomerByLocation={this.getCustomerByLocation}
+                disableSaveButtons={this.disableSaveButtons}
+              />
+            </CardBody>
+          </Card>
+        </GridItem>
+
+        <Snackbar
+          place="tl"
+          color={this.state.notificationclass}
+          message={this.state.notificationMessage}
+          onClose={this.closeNotification}
+          open={this.state.isOpenNotification}
+          closeNotification={this.closeNotification}
+          close
+        />
+      </GridContainer>
     );
   }
 }
