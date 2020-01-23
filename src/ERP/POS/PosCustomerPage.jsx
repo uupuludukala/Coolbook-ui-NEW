@@ -79,7 +79,6 @@ class PosCustomerPage extends React.Component {
           const rawData = dataRetrived._embedded.customerGetList;
           console.log();
           rawData.map((n, index) => {
-            console.log("iterator");
             searchList.push(
               <PosCustomer
                 customer={rawData[index]}

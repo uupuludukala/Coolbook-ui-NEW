@@ -9,6 +9,10 @@ import CustomerForm from "../Forms/CustomerForm";
 import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
 import Snackbar from "components/Snackbar/Snackbar.jsx";
+import SearchBar from "components/SearchBar/SearchBar.jsx";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const styles = theme => ({
   root: {
@@ -19,12 +23,39 @@ const styles = theme => ({
 
 class CustomerPage extends React.Component {
   state = {
+    searchDialogOpen: false,
     pageSize: 20,
     data: [],
     customer: "",
-    isOpenNotification: false
+    isOpenNotification: false,
+    searchFields: [
+      {
+        name: "customerName",
+        type: "Text",
+        label: "Customer Name",
+        data: []
+      },
+      {
+        name: "mobileNumer",
+        type: "Text",
+        label: "Mobile Numer",
+        data: []
+      },
+      {
+        name: "nicNumber",
+        type: "Text",
+        label: "NIC Number",
+        data: []
+      }
+    ]
   };
 
+  openSearchDialog = () => {
+    this.setState({ searchDialogOpen: true });
+  };
+  handleSearchDialogClose = () => {
+    this.setState({ searchDialogOpen: false });
+  };
   closeNotification = () => {
     console.log("Notification Function");
     this.setState({
@@ -33,7 +64,7 @@ class CustomerPage extends React.Component {
   };
 
   reloadData = () => {
-    this.getCustomer(0, this.state.pageSize);
+    this.getCustomer(0, this.state.pageSize, "");
   };
   showNotification = (message, notificationclass) => {
     this.setState({
@@ -48,14 +79,14 @@ class CustomerPage extends React.Component {
   }
   getSearchParameters = (page, pageSize) => {
     var parameterString = "page=" + page + "&size=" + pageSize;
+
     return parameterString;
   };
 
-  getCustomer = (page, pageSize) => {
-    console.log("Function called Today");
+  getCustomer = (page, pageSize, searchValue) => {
     this.setState({ pageSize: pageSize });
-    let searchParameters = this.getSearchParameters(page, pageSize);
-
+    let searchParameters =
+      this.getSearchParameters(page, pageSize) + searchValue;
     fetch(API_URL + "/getAllCustomer?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -146,7 +177,9 @@ class CustomerPage extends React.Component {
   disableSaveButtons = () => {
     this.refs.toolBar.disableSaveButtons();
   };
-
+  getQueryParameter = searchValue => {
+    this.getCustomer(0, this.state.pageSize, searchValue);
+  };
   render() {
     const tableHeaders = [
       {
@@ -181,6 +214,7 @@ class CustomerPage extends React.Component {
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <MasterDataToolbar
+              openSearchDialog={this.openSearchDialog}
               ref="toolBar"
               submitForm={this.submitForm}
               deleteSelected={this.deleteSelected}
@@ -224,6 +258,20 @@ class CustomerPage extends React.Component {
           closeNotification={this.closeNotification}
           close
         />
+        <Dialog
+          open={this.state.searchDialogOpen}
+          onClose={this.handleSearchDialogClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Search Customer</DialogTitle>
+          <DialogContent>
+            <SearchBar
+              searchDialogCloseFunction={this.handleSearchDialogClose}
+              searchFields={this.state.searchFields}
+              getQueryParameter={this.getQueryParameter}
+            />
+          </DialogContent>
+        </Dialog>
       </GridContainer>
     );
   }

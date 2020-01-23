@@ -3,6 +3,9 @@ import CardHeader from "components/Card/CardHeader.jsx";
 import Button from "@material-ui/core/Button";
 import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardStyle.jsx";
 import withStyles from "@material-ui/core/styles/withStyles";
+import SearchIcon from "@material-ui/icons/Search";
+
+import "../../ERP/css/main.css";
 
 class MasterDataToolbar extends React.Component {
   disableSaveButtons = disable => {
@@ -35,10 +38,14 @@ class MasterDataToolbar extends React.Component {
     main.style.display = "block";
     form.style.display = "none";
     createButton.style.display = "inline";
+    var searchButton = document.getElementById("searchButton");
+    searchButton.style.display = "inline";
     editButton.style.display = "none";
     deleteButton.style.display = "none";
     discardButton.style.display = "none";
+    // this.props.reloadFunction();
   };
+
   enableEditMode = () => {
     this.props.enableEditModeFuction();
     var editButton = document.getElementById("editButton");
@@ -55,6 +62,8 @@ class MasterDataToolbar extends React.Component {
     this.disableSaveButtons(false);
     editButton.style.display = "none";
     deleteButton.style.display = "none";
+    var searchButton = document.getElementById("searchButton");
+    searchButton.style.display = "none";
   };
 
   deleteSelected = () => {
@@ -65,7 +74,6 @@ class MasterDataToolbar extends React.Component {
     const { classes } = this.props;
     return (
       <CardHeader color="primary">
-        <h4 className={classes.cardTitleWhite}>Simple Table</h4>
         <Button
           id="createButton"
           variant="contained"
@@ -124,11 +132,18 @@ class MasterDataToolbar extends React.Component {
           variant="contained"
           color="secondaryprimary"
           className={classes.button}
-          onClick={this.renderGrid}
+          onClick={this.props.reloadFunction}
           style={{ display: "none" }}
         >
           CANCEL
         </Button>
+
+        <SearchIcon
+          className="searchButton"
+          style={{ display: "none" }}
+          id="searchButton"
+          onClick={this.props.openSearchDialog}
+        />
       </CardHeader>
     );
   }

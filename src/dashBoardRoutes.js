@@ -10,7 +10,8 @@ import DashboardPage from "views/Dashboard/Dashboard.jsx";
 import UserProfile from "views/UserProfile/UserProfile.jsx";
 import Customer from "ERP/Pages/CustomerPage.js";
 import Product from "ERP/Pages/ProductPage.js";
-import POS from "ERP/Pages/PosPage.js";
+import POS from "ERP/POS/PosPage.js";
+import Orders from "ERP/Pages/Orders.js";
 import ProductCategory from "ERP/Pages/ProductCategoryPage.js";
 import TableList from "views/TableList/TableList.jsx";
 import Typography from "views/Typography/Typography.jsx";
@@ -94,6 +95,13 @@ const dashBoardRoutes = [
     name: "Point Of Sale",
     icon: LibraryBooks,
     component: POS,
+    layout: "/admin"
+  },
+  {
+    path: "/order",
+    name: "Orders",
+    icon: LibraryBooks,
+    component: Orders,
     layout: "/admin"
   }
 ];

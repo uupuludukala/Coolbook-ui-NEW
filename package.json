@@ -7,11 +7,12 @@
   "dependencies": {
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "3.0.2",
-    "bootstrap": "^4.3.1",
+    "@material-ui/lab": "^4.0.0-alpha.38",
+    "bootstrap": "^4.4.1",
     "chartist": "0.10.1",
     "classnames": "2.2.6",
     "history": "4.7.2",
-    "material-ui-dropzone": "^2.3.2",
+    "material-ui-dropzone": "^2.4.7",
     "perfect-scrollbar": "1.4.0",
     "prettier": "1.16.4",
     "prop-types": "15.7.1",
@@ -19,10 +20,12 @@
     "react-chartist": "0.13.3",
     "react-dom": "16.8.1",
     "react-google-maps": "9.4.5",
-    "react-material-ui-form-validator": "^2.0.8",
+    "react-material-ui-form-validator": "^2.0.9",
+    "react-number-format": "^4.3.1",
     "react-router-dom": "4.3.1",
     "react-scripts": "2.1.5",
-    "react-swipeable-views": "0.13.1"
+    "react-swipeable-views": "0.13.1",
+    "react-to-print": "^2.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
