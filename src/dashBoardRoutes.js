@@ -9,6 +9,9 @@ import Notifications from "@material-ui/icons/Notifications";
 import DashboardPage from "views/Dashboard/Dashboard.jsx";
 import UserProfile from "views/UserProfile/UserProfile.jsx";
 import Customer from "ERP/Pages/CustomerPage.js";
+import Company from "ERP/Pages/CompanyPage.js";
+import Branch from "ERP/Pages/BranchPage.js";
+
 import Product from "ERP/Pages/ProductPage.js";
 import POS from "ERP/POS/PosPage.js";
 import Orders from "ERP/Pages/Orders.js";
@@ -74,6 +77,20 @@ const dashBoardRoutes = [
     name: "Customer",
     icon: LibraryBooks,
     component: Customer,
+    layout: "/admin"
+  },
+  {
+    path: "/Company",
+    name: "Company",
+    icon: LibraryBooks,
+    component: Company,
+    layout: "/admin"
+  },
+  {
+    path: "/Branch",
+    name: "Branch",
+    icon: LibraryBooks,
+    component: Branch,
     layout: "/admin"
   },
   {
