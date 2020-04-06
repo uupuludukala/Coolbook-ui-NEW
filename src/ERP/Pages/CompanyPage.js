@@ -30,21 +30,15 @@ class CustomerPage extends React.Component {
     isOpenNotification: false,
     searchFields: [
       {
-        name: "customerName",
+        name: "companyName",
         type: "Text",
-        label: "Customer Name",
+        label: "Company Name",
         data: []
       },
       {
-        name: "mobileNumer",
+        name: "contactNumber",
         type: "Text",
-        label: "Mobile Numer",
-        data: []
-      },
-      {
-        name: "nicNumber",
-        type: "Text",
-        label: "NIC Number",
+        label: "Contact Number",
         data: []
       }
     ]

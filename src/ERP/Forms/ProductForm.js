@@ -33,10 +33,12 @@ function TabContainer(props) {
 class ProductForm extends React.Component {
   state = {
     imageUrl: "",
-    venderTaxes: [],
+    companies: [],
+    companyIds: [],
     tabValue: 0,
     productType: 0,
-    productCategoryList: []
+    productCategoryList: [],
+    companyList: []
   };
   resetForm = () => {
     this.refs.form.resetValidations();
@@ -50,20 +52,41 @@ class ProductForm extends React.Component {
   handleChangeByName = name => event => {
     this.setState({ [name]: event.target.checked });
   };
-  handleChangeForVenderTaxes = event => {
-    console.log("event.target.value" + event.target.value);
-    const value = [];
+  handleChangeForCompany = event => {
+    const company = [];
+    const companyId = [];
+
+    console.log("event.target.value.length", event.target.value);
+    // const hashMap = new NaiveHashMap();
     for (let i = 0, l = event.target.value.length; i < l; i += 1) {
-      value.push(event.target.value[i]);
+      let isExists = false;
+      console.log("event.target.value[i].id", event.target.value[i].id);
+      for (let j = 0, k = this.state.companies.length; j < k; j += 1) {
+        if (event.target.value[i].id === this.state.companies[j].id) {
+          console.log("is exists", this.state.companies[j].id);
+          this.state.companies[j] = event.target.value[i];
+          isExists = true;
+          break;
+        }
+      }
+      // company[i] = event.target.value[i];
+      // hashMap.set(event.target.value[i].id, event.target.value[i]);
+      console.log("company value", company);
+      if (!isExists) {
+        console.log("Not Exists", event.target.value[i].id);
+        this.state.companies.push(event.target.value[i]);
+        companyId.push(event.target.value[i].id);
+      }
     }
 
-    this.setState({ venderTaxes: value });
-    // this.state.venderTaxes.push(event.target.value);
-    // this.setState({ [event.target.name]: event.target.value });
+    // this.setState({ companies: company });
+    this.setState({ companyIds: companyId });
+    console.log("this.state.companies", this.state.companies);
   };
 
   componentDidMount() {
     this.getProductCategory();
+    this.getCompany();
   }
 
   submitform = () => {
@@ -103,15 +126,15 @@ class ProductForm extends React.Component {
       descReceipt: "",
       weight: "0.00",
       volume: "0.00",
-      responsible: 0
+      responsible: 0,
+      companies: []
     });
   };
 
   setFormData = dataRetrived => {
-    console.log("dataRetrived", dataRetrived);
     this.setState({ ...dataRetrived });
+
     this.disableFormElements();
-    console.log("makeToOrder Value", this.state.makeToOrder);
   };
   disableFormElements = () => {
     this.setState({ disableFormElements: true });
@@ -156,7 +179,7 @@ class ProductForm extends React.Component {
       internalNotes: this.state.internalNotes,
       salePrice: this.state.salePrice,
       cost: this.state.cost,
-      active: this.state.active,
+      active: true,
       quantity: this.state.quantity,
       imageUrl: this.state.imageUrl,
       availableInPos: this.state.availableInPos,
@@ -166,7 +189,8 @@ class ProductForm extends React.Component {
       descReceipt: this.state.descReceipt,
       weight: this.state.weight,
       volume: this.state.volume,
-      responsible: this.state.responsible
+      responsible: this.state.responsible,
+      companies: this.state.companyIds
     };
     let requestMethod = this.state.saveMode === "Update" ? "PUT" : "POST";
     fetch(
@@ -240,6 +264,28 @@ class ProductForm extends React.Component {
 
         this.setState({
           productCategoryList: rawData
+        });
+      })
+      .catch(err => {
+        // Do something for an error here
+        console.log("Error", err);
+      });
+  };
+
+  getCompany = () => {
+    fetch(API_URL + "/getAllCompany", {
+      headers: {
+        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+      }
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(dataRetrived => {
+        const rawData = dataRetrived._embedded.companyGetList;
+
+        this.setState({
+          companyList: rawData
         });
       })
       .catch(err => {
@@ -366,7 +412,7 @@ class ProductForm extends React.Component {
         >
           <Tab label="General Information" />
           <Tab label="Sales" />
-          <Tab label="Purchase" />
+          <Tab label="Company" />
           <Tab label="Inventory" />
         </Tabs>
         {/* General Information Tab */}
@@ -534,21 +580,21 @@ class ProductForm extends React.Component {
           <TabContainer>
             <GridContainer>
               <GridItem>
-                <h2>Vendor Bills</h2>
+                <h2>Companies</h2>
                 <FormControl required className={classes.formControl}>
-                  <InputLabel htmlFor="venderTaxes">Vender Taxes</InputLabel>
+                  <InputLabel htmlFor="companies">Companies</InputLabel>
                   <Select
                     multiple
-                    label="Vender Taxes"
-                    value={this.state.venderTaxes}
-                    onChange={this.handleChangeForVenderTaxes}
-                    input={<Input id="venderTaxes" />}
+                    label="Companies"
+                    value={this.state.companies}
+                    onChange={this.handleChangeForCompany}
+                    input={<Input id="companies" />}
                     renderValue={selected => (
                       <div className={classes.chips}>
                         {selected.map(value => (
                           <Chip
-                            key={value}
-                            label={value}
+                            key={value.id}
+                            label={value.companyName}
                             className={classes.chip}
                           />
                         ))}
@@ -556,15 +602,23 @@ class ProductForm extends React.Component {
                     )}
                     MenuProps={MenuProps}
                   >
-                    {names.map(name => (
+                    {/* <MenuItem value="0">All</MenuItem> */}
+                    {this.state.companyList.map(
+                      n => (
+                        <MenuItem value={n}>{n.companyName}</MenuItem>
+                      ),
+                      this
+                    )}
+
+                    {/* {this.state.companyList.map(company => (
                       <MenuItem
-                        key={name}
-                        value={name}
+                        key={"fgh"}
+                        value={"dfgdft"}
                         // style={getStyles(name, personName, theme)}
                       >
-                        {name}
+                        {company}
                       </MenuItem>
-                    ))}
+                    ))} */}
                   </Select>
                 </FormControl>
               </GridItem>
@@ -654,6 +708,20 @@ class ProductForm extends React.Component {
                     value={this.state.volume}
                     onChange={this.handleChange}
                     label="Volume"
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                  />
+                </FormControl>
+                <br />
+                <FormControl required className={classes.formControl}>
+                  <TextValidator
+                    disabled={this.state.disableFormElements}
+                    type="number"
+                    name="quantity"
+                    value={this.state.quantity}
+                    onChange={this.handleChange}
+                    label="Quantity"
                     InputLabelProps={{
                       shrink: true
                     }}

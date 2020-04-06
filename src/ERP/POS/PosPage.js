@@ -12,8 +12,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import InvoiceItem from "../Components/InvoiceItem";
 import Backspace from "../../assets/img/backspace.png";
-import PosCustomerPage from "../Pages/PosCustomerPage";
+import PosCustomerPage from "./PosCustomerPage";
 import PosPaymentPage from "./PosPaymentPage.jsx";
+import PosPrintPage from "./PosPrintPage.jsx";
 
 const styles = theme => ({
   productColumn: {
@@ -64,6 +65,7 @@ class PosPage extends React.Component {
     isNumberPadQuantity: false,
     customerPageClass: "hide",
     paymentPageClass: "hide",
+    printPageClass: "hide",
     posPageClass: "show",
     isPOSOpen: true,
     customer: null,
@@ -72,7 +74,7 @@ class PosPage extends React.Component {
   };
 
   handleChange = event => {
-    // this.setState({ productCode: event.target.value });
+    // this.setState({ internalReference: event.target.value });
     this.getProduct(event.target.value);
   };
   cancelPos = () => {
@@ -86,12 +88,10 @@ class PosPage extends React.Component {
     this.addShoppingCart(product, quantity, false);
   };
   addShoppingCart = (product, quantity, isNumberPadQuantity) => {
-    let productCode = product.productCode;
-
+    let internalReference = product.internalReference;
     let invoiceProduct;
-
-    if (this.state.productList[productCode] != null) {
-      invoiceProduct = this.state.productList[productCode];
+    if (this.state.productList[internalReference] != null) {
+      invoiceProduct = this.state.productList[internalReference];
       invoiceProduct.quantity = invoiceProduct.quantity + quantity;
       let total = this.state.total - invoiceProduct.totalForProduct;
       if (isNumberPadQuantity) {
@@ -104,10 +104,6 @@ class PosPage extends React.Component {
       } else {
         invoiceProduct.totalForProduct =
           invoiceProduct.totalForProduct + invoiceProduct.salePrice * quantity;
-        console.log(
-          "invoiceProduct.totalForProduct ",
-          invoiceProduct.totalForProduct
-        );
         total = total + invoiceProduct.totalForProduct;
         this.setState({
           total: total
@@ -119,11 +115,11 @@ class PosPage extends React.Component {
         salePrice: product.salePrice,
         quantity: 1,
         totalForProduct: product.salePrice,
-        productCode: product.productCode
+        internalReference: product.internalReference
       };
       this.setState({ total: this.state.total + product.salePrice });
     }
-    this.state.productList[productCode] = invoiceProduct;
+    this.state.productList[internalReference] = invoiceProduct;
     // this.setState({ isNumberPadQuantity: false });
     // this.state.shoppingCartList.push(invoiceProduct);
     this.setState({ productList: this.state.productList });
@@ -141,6 +137,7 @@ class PosPage extends React.Component {
   };
 
   invoiceItemOnclick = (event, data) => {
+    console.log("selectedInvoiceItem Data", data);
     this.setState({ selectedInvoiceItem: data });
     this.onclickCssClassChange(event, "orderline", "orderline selected");
     this.setState({ selectedQuantity: "" });
@@ -149,15 +146,16 @@ class PosPage extends React.Component {
   numberPadClick = event => {
     let mode = this.state.numberPadMode;
     let selectedInvoiceItem = this.state.selectedInvoiceItem;
+
     let newValue;
     switch (mode) {
       case "quantity":
-        newValue = this.state.selectedQuantity + event.currentTarget.value;
-        console.log("New Value", newValue);
-        selectedInvoiceItem.quantity = 0;
-        this.setState({ selectedQuantity: newValue });
-        this.addShoppingCart(selectedInvoiceItem, parseInt(newValue), true);
-        console.log("selected Item", selectedInvoiceItem);
+        if (this.state.selectedQuantity != null) {
+          newValue = this.state.selectedQuantity + event.currentTarget.value;
+          selectedInvoiceItem.quantity = 0;
+          this.setState({ selectedQuantity: newValue });
+          this.addShoppingCart(selectedInvoiceItem, parseInt(newValue), true);
+        }
         break;
       case "discount":
         // text = "I am not a fan of orange.";
@@ -170,6 +168,7 @@ class PosPage extends React.Component {
     }
   };
   numberPadModeChange = event => {
+    console.log("Number pad mode change called");
     this.setState({ numberPadMode: event.target.value });
     this.onclickCssClassChange(
       event,
@@ -177,15 +176,23 @@ class PosPage extends React.Component {
       "mode-button selected-mode"
     );
   };
-  getProduct = productCode => {
+  getProduct = searchValue => {
     let searchList = [];
     ReactDOM.render("", document.getElementById("posSearchList"));
-    console.log(productCode);
-    fetch(API_URL + "/getAllProduct?internalReference=" + productCode, {
-      headers: {
-        Authorization: "Bearer " + window.localStorage.getItem("access_token")
+    fetch(
+      API_URL +
+        "/getAllProductPOS?productName=" +
+        searchValue +
+        "&internalReference=" +
+        searchValue +
+        "&barcode=" +
+        searchValue,
+      {
+        headers: {
+          Authorization: "Bearer " + window.localStorage.getItem("access_token")
+        }
       }
-    })
+    )
       .then(response => {
         return response.json();
       })
@@ -194,7 +201,6 @@ class PosPage extends React.Component {
           const rawData = dataRetrived._embedded.productGetList;
 
           rawData.map((n, index) => {
-            console.log("iterator");
             searchList.push(
               <PosItem
                 product={rawData[index]}
@@ -217,21 +223,51 @@ class PosPage extends React.Component {
     this.setState({
       customerPageClass: "show",
       posPageClass: "hide",
-      paymentPageClass: "hide"
+      paymentPageClass: "hide",
+      printPageClass: "hide"
+    });
+  };
+  openPrintDialog = () => {
+    this.setState({ isPOSPage: false });
+    this.setState({
+      customerPageClass: "hide",
+      posPageClass: "hide",
+      paymentPageClass: "hide",
+      printPageClass: "show"
     });
   };
   closeCustomerDialog = () => {
     this.setState({ isPOSPage: true });
-    this.setState({ customerPageClass: "hide", posPageClass: "show" });
+    this.setState({
+      customerPageClass: "hide",
+      posPageClass: "show",
+      printPageClass: "hide"
+    });
   };
 
   openPaymentDialog = () => {
     this.setState({ isPOSPage: false });
-    this.setState({ paymentPageClass: "show", posPageClass: "hide" });
+    this.setState({
+      paymentPageClass: "show",
+      posPageClass: "hide",
+      printPageClass: "hide"
+    });
   };
   closePaymentDialog = () => {
     this.setState({ isPOSPage: true });
-    this.setState({ paymentPageClass: "hide", posPageClass: "show" });
+    this.setState({
+      paymentPageClass: "hide",
+      posPageClass: "show",
+      printPageClass: "hide"
+    });
+  };
+  closePrintDialog = () => {
+    this.setState({ isPOSPage: true });
+    this.setState({
+      paymentPageClass: "hide",
+      posPageClass: "show",
+      printPageClass: "hide"
+    });
   };
   closePos = () => {
     this.setState({ isPOSOpen: false });
@@ -326,9 +362,9 @@ class PosPage extends React.Component {
                                           title="Customer"
                                         />
                                         {this.state.customer != null
-                                          ? this.state.customer.firstName +
+                                          ? this.state.customer.customerName +
                                             " " +
-                                            this.state.customer.lastName
+                                            this.state.customer.nicNumber
                                           : "Customer"}
                                       </button>
                                       <button
@@ -398,6 +434,7 @@ class PosPage extends React.Component {
                                         6
                                       </button>
                                       <button
+                                        disabled
                                         onClick={this.numberPadModeChange}
                                         className="mode-button"
                                         value="discount"
@@ -427,6 +464,7 @@ class PosPage extends React.Component {
                                         9
                                       </button>
                                       <button
+                                        disabled
                                         className="mode-button"
                                         onClick={this.numberPadModeChange}
                                         value="price"
@@ -516,130 +554,6 @@ class PosPage extends React.Component {
                     </div>
                   </div>
                 </div>
-
-                <div className="keyboard_frame">
-                  <ul className="keyboard simple_keyboard">
-                    <li className="symbol firstitem row_qwerty">
-                      <span className="off">q</span>
-                      <span className="on">1</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">w</span>
-                      <span className="on">2</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">e</span>
-                      <span className="on">3</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">r</span>
-                      <span className="on">4</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">t</span>
-                      <span className="on">5</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">y</span>
-                      <span className="on">6</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">u</span>
-                      <span className="on">7</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">i</span>
-                      <span className="on">8</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">o</span>
-                      <span className="on">9</span>
-                    </li>
-                    <li className="symbol lastitem">
-                      <span className="off">p</span>
-                      <span className="on">0</span>
-                    </li>
-
-                    <li className="symbol firstitem row_asdf">
-                      <span className="off">a</span>
-                      <span className="on">@</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">s</span>
-                      <span className="on">#</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">d</span>
-                      <span className="on">%</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">f</span>
-                      <span className="on">*</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">g</span>
-                      <span className="on">/</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">h</span>
-                      <span className="on">-</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">j</span>
-                      <span className="on">+</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">k</span>
-                      <span className="on">(</span>
-                    </li>
-                    <li className="symbol lastitem">
-                      <span className="off">l</span>
-                      <span className="on">)</span>
-                    </li>
-
-                    <li className="symbol firstitem row_zxcv">
-                      <span className="off">z</span>
-                      <span className="on">?</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">x</span>
-                      <span className="on">!</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">c</span>
-                      <span className="on">"</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">v</span>
-                      <span className="on">'</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">b</span>
-                      <span className="on">:</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">n</span>
-                      <span className="on">;</span>
-                    </li>
-                    <li className="symbol">
-                      <span className="off">m</span>
-                      <span className="on">,</span>
-                    </li>
-                    <li className="delete lastitem">delete</li>
-
-                    <li className="numlock firstitem row_space">
-                      <span className="off">123</span>
-                      <span className="on">ABC</span>
-                    </li>
-                    <li className="space">&nbsp;</li>
-                    <li className="symbol">
-                      <span className="off">.</span>
-                      <span className="on">.</span>
-                    </li>
-                    <li className="return lastitem">return</li>
-                  </ul>
-                  <p className="close_button">close</p>
-                </div>
               </div>
               <Dialog
                 open={this.state.isErrDlgOpen}
@@ -678,7 +592,12 @@ class PosPage extends React.Component {
                 closeFunction={this.closePaymentDialog}
                 customer={this.state.customer}
                 openCustomerPageFunction={this.openCustomerDialog}
+                openPrintPageFunction={this.openPrintDialog}
               />
+            </div>
+            <div className={this.state.printPageClass}>
+              >
+              <PosPrintPage closePrintPageFucntion={this.closePrintDialog} />
             </div>
           </div>
         </DialogContent>

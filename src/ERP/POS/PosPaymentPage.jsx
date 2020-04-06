@@ -3,20 +3,48 @@ import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import "../css/pos.css";
 import Backspace from "../../assets/img/backspace.png";
+import TextField from "@material-ui/core/TextField";
+import NumberFormat from "react-number-format";
+
+import PosPrintPage from "./PosPrintPage.jsx";
 
 const styles = theme => ({});
+
 class PosPaymentPage extends React.Component {
   state = {
-    tendered: 0.0,
-    change: 0.0,
-    paymentMethod: ""
+    change: "0.00",
+    paymentMethod: "",
+    validateBtnClass: "button next "
   };
   setPaymentMethod = method => {
     this.setState({ paymentMethod: method });
   };
+  numberPadClick = event => {
+    let tendered = this.state.tendered !== undefined ? this.state.tendered : "";
+    let newValue = tendered + event.currentTarget.value;
+    let newTenderedValue = Math.round(parseFloat(newValue) * 100) / 100;
+    this.setState({ tendered: newValue });
+    let total = Math.round(parseFloat(this.props.total) * 100) / 100;
+    let change = Math.round(parseFloat(newValue) * 100) / 100 - total;
+    if (newTenderedValue >= total) {
+      this.setState({ validateBtnClass: "button next highlight" });
+    }
+    this.setState({ change: change.toFixed(2) });
+  };
+  numberPadBackspace = event => {
+    let tendered = this.state.tendered;
+    console.log(
+      "tendered.substring(0, tendered.length - 1)",
+      tendered.substring(0, tendered.length - 1)
+    );
+    this.setState({
+      tendered: tendered.substring(0, tendered.length - 1)
+    });
+  };
   render() {
     let cash = "Cash";
     let account = "Account";
+
     return (
       <div className="pos">
         <div className="pos-content">
@@ -35,7 +63,11 @@ class PosPaymentPage extends React.Component {
                           Back
                         </span>
                         <h1>Payment</h1>
-                        <span className="button next highlight">
+                        <span
+                          className={this.state.validateBtnClass}
+                          onClick={this.props.openPrintPageFunction}
+                          id="validateBtn"
+                        >
                           Validate
                           <i className="fa fa-angle-double-right" />
                         </span>
@@ -65,7 +97,7 @@ class PosPaymentPage extends React.Component {
                           {/* Payent line starts here */}
                           <table className="paymentlines">
                             <colgroup>
-                              <col className="due" />
+                              {/* <col className="due" /> */}
                               <col className="tendered" />
                               <col className="change" />
                               <col className="method" />
@@ -73,7 +105,7 @@ class PosPaymentPage extends React.Component {
                             </colgroup>
                             <thead>
                               <tr className="label">
-                                <th>Due</th>
+                                {/* <th>Due</th> */}
                                 <th>Tendered</th>
                                 <th>Change</th>
                                 <th>Method</th>
@@ -82,12 +114,23 @@ class PosPaymentPage extends React.Component {
                             </thead>
                             <tbody>
                               <tr className="paymentline selected">
-                                <td className="col-due">
+                                {/* <td className="col-due">
                                   {" "}
-                                  {this.props.total.toFixed(2)}{" "}
-                                </td>
+                                  <NumberFormat
+                                    value={this.props.total.toFixed(2)}
+                                    displayType={"text"}
+                                    thousandSeparator={true}
+                                  />{" "}
+                                </td> */}
                                 <td className="col-tendered edit">
-                                  {this.state.tendered}
+                                  {/* {this.state.tendered} */}
+                                  <NumberFormat
+                                    decimalScale={2}
+                                    fixedDecimalScale={true}
+                                    value={this.state.tendered}
+                                    displayType={"text"}
+                                    thousandSeparator={true}
+                                  />
                                 </td>
 
                                 <td className="col-change highlight">
@@ -117,7 +160,16 @@ class PosPaymentPage extends React.Component {
                           {/* Payment line ends here */}
                           <div className="paymentlines-empty">
                             <div className="total">
-                              Rs. {this.props.total.toFixed(2)}
+                              Rs.{" "}
+                              <NumberFormat
+                                value={
+                                  this.props.total !== undefined
+                                    ? this.props.total.toFixed(2)
+                                    : 0.0
+                                }
+                                displayType={"text"}
+                                thousandSeparator={true}
+                              />
                             </div>
                             {/* <div className="message">
                               Please select a payment method.
@@ -129,19 +181,22 @@ class PosPaymentPage extends React.Component {
                           <div className="numpad">
                             <button
                               className="input-button number-char"
-                              data-action="1"
+                              onClick={this.numberPadClick}
+                              value="1"
                             >
                               1
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="2"
+                              onClick={this.numberPadClick}
+                              value="2"
                             >
                               2
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="3"
+                              onClick={this.numberPadClick}
+                              value="3"
                             >
                               3
                             </button>
@@ -149,19 +204,22 @@ class PosPaymentPage extends React.Component {
                             <br />
                             <button
                               className="input-button number-char"
-                              data-action="4"
+                              onClick={this.numberPadClick}
+                              value="4"
                             >
                               4
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="5"
+                              onClick={this.numberPadClick}
+                              value="5"
                             >
                               5
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="6"
+                              onClick={this.numberPadClick}
+                              value="6"
                             >
                               6
                             </button>
@@ -169,19 +227,22 @@ class PosPaymentPage extends React.Component {
                             <br />
                             <button
                               className="input-button number-char"
-                              data-action="7"
+                              onClick={this.numberPadClick}
+                              value="7"
                             >
                               7
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="8"
+                              onClick={this.numberPadClick}
+                              value="8"
                             >
                               8
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="9"
+                              onClick={this.numberPadClick}
+                              value="9"
                             >
                               9
                             </button>
@@ -189,13 +250,15 @@ class PosPaymentPage extends React.Component {
                             <br />
                             <button
                               className="input-button number-char"
-                              data-action="0"
+                              onClick={this.numberPadClick}
+                              value="0"
                             >
                               0
                             </button>
                             <button
                               className="input-button number-char"
-                              data-action="."
+                              onClick={this.numberPadClick}
+                              value="."
                             >
                               .
                             </button>
@@ -207,6 +270,7 @@ class PosPaymentPage extends React.Component {
                                 alt="Backspace"
                                 height="21"
                                 src={Backspace}
+                                onClick={this.numberPadBackspace}
                                 width="24"
                               />
                             </button>
@@ -226,9 +290,9 @@ class PosPaymentPage extends React.Component {
                             />
                             <span className="js_customer_name">
                               {this.props.customer != null
-                                ? this.props.customer.firstName +
+                                ? this.props.customer.customerName +
                                   " " +
-                                  this.props.customer.lastName
+                                  this.props.customer.nicNumber
                                 : "Select Customer"}
                             </span>
                           </div>

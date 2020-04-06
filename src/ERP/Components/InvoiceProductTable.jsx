@@ -27,7 +27,7 @@ class InvoiceProductTable extends React.Component {
         <TableBody>
           {dataList.map(data => (
             <TableRow>
-              <TableCell>{data.productCode}</TableCell>
+              <TableCell>{data.internalReference}</TableCell>
               <TableCell>{data.productName}</TableCell>
               <TableCell>{data.salePrice}</TableCell>
               <TableCell>1</TableCell>

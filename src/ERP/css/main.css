@@ -13,3 +13,7 @@
 .searchFormFieldSeperator {
   width: 10px;
 }
+
+.searchButton {
+  cursor: pointer;
+}
