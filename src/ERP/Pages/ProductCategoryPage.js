@@ -9,9 +9,13 @@ import ProductCategoryForm from "../Forms/ProductCategoryForm";
 import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
 import Snackbar from "components/Snackbar/Snackbar.jsx";
+import SearchBar from "components/SearchBar/SearchBar.jsx";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const styles = theme => ({
-  root: {
+  root: {    
     display: "flex",
     flexWrap: "wrap"
   }
@@ -19,12 +23,35 @@ const styles = theme => ({
 
 class ProductCategoryPage extends React.Component {
   state = {
+    searchDialogOpen: false,
     pageSize: 20,
     data: [],
     product: "",
-    isOpenNotification: false
+    isOpenNotification: false,
+    searchFields: [
+      {
+        name: "productCatCode",
+        type: "Text",
+        label: "Product Category Code",
+        data: []
+      },
+      {
+        name: "productCatName",
+        type: "Text",
+        label: "Product Category Name",
+        data: []
+      }
+    ]
   };
 
+  openSearchDialog = () => {
+    console.log("searchDialogOpen called");
+    this.setState({ searchDialogOpen: true });
+  };
+
+  handleSearchDialogClose = () => {
+    this.setState({ searchDialogOpen: false });
+  };
   closeNotification = () => {
     console.log("Notification Function");
     this.setState({
@@ -33,7 +60,7 @@ class ProductCategoryPage extends React.Component {
   };
 
   reloadData = () => {
-    this.getProductCategory(0, this.state.pageSize);
+    this.getProductCategory(0, this.state.pageSize,"");
   };
   showNotification = (message, notificationclass) => {
     this.setState({
@@ -51,9 +78,9 @@ class ProductCategoryPage extends React.Component {
     return parameterString;
   };
 
-  getProductCategory = (page, pageSize) => {
+  getProductCategory = (page, pageSize,searchValue) => {
     this.setState({ pageSize: pageSize });
-    let searchParameters = this.getSearchParameters(page, pageSize);
+    let searchParameters = this.getSearchParameters(page, pageSize)+searchValue;
 
     fetch(API_URL + "/getAllProductCategory?" + searchParameters, {
       headers: {
@@ -145,7 +172,9 @@ class ProductCategoryPage extends React.Component {
   disableSaveButtons = () => {
     this.refs.toolBar.disableSaveButtons();
   };
-
+  getQueryParameter = searchValue => {
+    this.getProductCategory(0, this.state.pageSize, searchValue);
+  };
   render() {
     const tableHeaders = [
       {
@@ -170,6 +199,7 @@ class ProductCategoryPage extends React.Component {
         <GridItem xs={12} sm={12} md={12}>
           <Card>
             <MasterDataToolbar
+              openSearchDialog={this.openSearchDialog}
               ref="toolBar"
               submitForm={this.submitForm}
               deleteSelected={this.deleteSelected}
@@ -213,6 +243,20 @@ class ProductCategoryPage extends React.Component {
           closeNotification={this.closeNotification}
           close
         />
+        <Dialog
+          open={this.state.searchDialogOpen}
+          onClose={this.handleSearchDialogClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Search Product Category</DialogTitle>
+          <DialogContent>
+            <SearchBar
+              searchDialogCloseFunction={this.handleSearchDialogClose}
+              searchFields={this.state.searchFields}
+              getQueryParameter={this.getQueryParameter}
+            />
+          </DialogContent>
+        </Dialog>
       </GridContainer>
     );
   }

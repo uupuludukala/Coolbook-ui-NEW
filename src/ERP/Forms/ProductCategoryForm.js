@@ -1,18 +1,9 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { API_URL } from "../properties/applicationProperties";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Input from "@material-ui/core/Input";
-import { PRODUCT_TYPE_LIST } from "../properties/applicationProperties";
 import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import Chip from "@material-ui/core/Chip";
-import InputLabel from "@material-ui/core/InputLabel";
-import Camera from "@material-ui/icons/CameraEnhance";
 import {
   ValidatorForm,
   TextValidator,
@@ -140,9 +131,7 @@ class ProductCategoryForm extends React.Component {
           this.disableFormElements();
           this.props.reloadFunction();
           this.props.showNotification("Saved Successfully", "success");
-          this.props.getProductCategoryByLocation(
-            response.headers.get("Location")
-          );
+          this.props.getProductCategoryByLocation(response.headers.get("Location"));
           this.props.disableSaveButtons(true);
         } else {
           console.log("Error Saving Data");

@@ -5,7 +5,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import Card from "components/Card/Card.jsx";
 import Table from "components/Table/Table.jsx";
 import CardBody from "components/Card/CardBody.jsx";
-import CustomerForm from "../Forms/CustomerForm";
+import CompanyForm from "../Forms/CompanyForm";
 import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
 import Snackbar from "components/Snackbar/Snackbar.jsx";
@@ -21,12 +21,11 @@ const styles = theme => ({
   }
 });
 
-class CustomerPage extends React.Component {
+class CompanyPage extends React.Component {
   state = {
     searchDialogOpen: false,
     pageSize: 20,
     data: [],
-    customer: "",
     isOpenNotification: false,
     searchFields: [
       {
@@ -58,7 +57,7 @@ class CustomerPage extends React.Component {
   };
 
   reloadData = () => {
-    this.getCustomer(0, this.state.pageSize, "");
+    this.getCompany(0, this.state.pageSize, "");
   };
   showNotification = (message, notificationclass) => {
     this.setState({
@@ -77,11 +76,11 @@ class CustomerPage extends React.Component {
     return parameterString;
   };
 
-  getCustomer = (page, pageSize, searchValue) => {
+  getCompany = (page, pageSize, searchValue) => {
     this.setState({ pageSize: pageSize });
     let searchParameters =
       this.getSearchParameters(page, pageSize) + searchValue;
-    fetch(API_URL + "/getAllCustomer?" + searchParameters, {
+    fetch(API_URL + "/getAllCompany?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -91,7 +90,7 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         if (dataRetrived.page.totalPages !== 0) {
-          const rawData = dataRetrived._embedded.customerGetList;
+          const rawData = dataRetrived._embedded.companyGetList;
           this.setState({
             data: rawData
           });
@@ -115,27 +114,27 @@ class CustomerPage extends React.Component {
   };
 
   submitForm = () => {
-    this.refs.customerForm.submitform();
+    this.refs.companyForm.submitform();
   };
 
   deleteSelected = () => {
-    this.refs.customerForm.deleteCustomer();
+    this.refs.companyForm.deleteCompany();
   };
   enableEditMode = () => {
-    this.refs.customerForm.enableEditMode();
-    this.refs.customerForm.enableFormElements();
+    this.refs.companyForm.enableEditMode();
+    this.refs.companyForm.enableFormElements();
   };
 
   enableAddMode = () => {
-    this.refs.customerForm.enableAddMode();
-    this.refs.customerForm.clearForm();
-    this.refs.customerForm.enableFormElements();
+    this.refs.companyForm.enableAddMode();
+    this.refs.companyForm.clearForm();
+    this.refs.companyForm.enableFormElements();
   };
   resetForm = () => {
-    this.refs.customerForm.resetForm();
+    this.refs.companyForm.resetForm();
   };
-  getSelectedCustomer = id => {
-    fetch(API_URL + "/getCustomerById/" + id, {
+  getSelectedCompany = id => {
+    fetch(API_URL + "/getCompanyById/" + id, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -145,13 +144,13 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.customerForm.setFormData(dataRetrived);
+        this.refs.companyForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
       });
   };
-  getCustomerByLocation = location => {
+  getCompanyByLocation = location => {
     fetch(location, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -162,7 +161,7 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.customerForm.setFormData(dataRetrived);
+        this.refs.companyForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
@@ -172,14 +171,19 @@ class CustomerPage extends React.Component {
     this.refs.toolBar.disableSaveButtons();
   };
   getQueryParameter = searchValue => {
-    this.getCustomer(0, this.state.pageSize, searchValue);
+    this.getCompany(0, this.state.pageSize, searchValue);
   };
   render() {
     const tableHeaders = [
       {
-        id: "customerName",
+        id: "companyCode",
         numeric: false,
-        label: "Customer Name"
+        label: "Company Code"
+      },
+      {
+        id: "companyName",
+        numeric: false,
+        label: "Company Name"
       },
       {
         id: "addressLine1",
@@ -197,9 +201,9 @@ class CustomerPage extends React.Component {
         label: "Address Line3"
       },
       {
-        id: "mobileNumer",
+        id: "contactNumber",
         numeric: true,
-        label: "Mobile Numer"
+        label: "Contact Number"
       }
     ];
 
@@ -227,16 +231,16 @@ class CustomerPage extends React.Component {
                 tableHeaderColor="primary"
                 tableHead={tableHeaders}
                 tableData={this.state.data}
-                getDataFunction={this.getCustomer}
-                getSelectedRowFuction={this.getSelectedCustomer}
+                getDataFunction={this.getCompany}
+                getSelectedRowFuction={this.getSelectedCompany}
               />
             </CardBody>
             <CardBody id="form" style={{ display: "none" }}>
-              <CustomerForm
-                ref="customerForm"
+              <CompanyForm
+                ref="companyForm"
                 reloadFunction={this.reloadData}
                 showNotification={this.showNotification}
-                getCustomerByLocation={this.getCustomerByLocation}
+                getCompanyByLocation={this.getCompanyByLocation}
                 disableSaveButtons={this.disableSaveButtons}
               />
             </CardBody>
@@ -257,7 +261,7 @@ class CustomerPage extends React.Component {
           onClose={this.handleSearchDialogClose}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Search Customer</DialogTitle>
+          <DialogTitle id="form-dialog-title">Search Company</DialogTitle>
           <DialogContent>
             <SearchBar
               searchDialogCloseFunction={this.handleSearchDialogClose}
@@ -270,4 +274,4 @@ class CustomerPage extends React.Component {
     );
   }
 }
-export default withStyles(styles)(CustomerPage);
+export default withStyles(styles)(CompanyPage);

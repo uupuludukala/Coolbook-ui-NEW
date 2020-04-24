@@ -3,6 +3,8 @@ import { withStyles } from "@material-ui/core/styles";
 import { API_URL } from "../properties/applicationProperties";
 import FormControl from "@material-ui/core/FormControl";
 import Camera from "@material-ui/icons/CameraEnhance";
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import TextField from "@material-ui/core/TextField";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 import GridItem from "components/Grid/GridItem.jsx";
 import GridContainer from "components/Grid/GridContainer.jsx";
@@ -16,11 +18,20 @@ function TabContainer(props) {
         </Typography>
     );
 }
-class CompanyForm extends React.Component {
-    
+class BranchForm extends React.Component {
+
     state = {
-      
-      };
+        companies: [],
+        selectedCompanys: {
+            branchCode: "",
+            companyName: "",
+            addressLine1: "",
+            addressLine2: "",
+            addressLine3: "",
+            contactNumber: "",
+            companyId: ""
+        }
+    };
 
     resetForm = () => {
         this.refs.form.resetValidations();
@@ -68,7 +79,18 @@ class CompanyForm extends React.Component {
             addressLine1: "",
             addressLine2: "",
             addressLine3: "",
-            contactNumber: ""
+            contactNumber: "",
+            companies: [],
+            selectedCompanys: {
+                branchCode: "",
+                companyName: "",
+                addressLine1: "",
+                addressLine2: "",
+                addressLine3: "",
+                contactNumber: "",
+                companyId: ""
+            }
+
         });
     };
 
@@ -76,6 +98,7 @@ class CompanyForm extends React.Component {
         console.log("dataRetrived", dataRetrived);
         this.setState({ ...dataRetrived });
         this.disableFormElements();
+        this.getSelectedCompany(dataRetrived.companyId);
     };
     disableFormElements = () => {
         this.setState({ disableFormElements: true });
@@ -84,8 +107,8 @@ class CompanyForm extends React.Component {
     enableFormElements = () => {
         this.setState({ disableFormElements: false });
     };
-    deleteCompany = () => {
-        fetch(API_URL + "/deleteCompany/" + this.state.id, {
+    deleteBranch = () => {
+        fetch(API_URL + "/deleteBranch/" + this.state.id, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer " + window.localStorage.getItem("access_token"),
@@ -109,27 +132,28 @@ class CompanyForm extends React.Component {
     };
 
     save = () => {
-        const company = {
-            companyCode: this.state.companyCode,
-            companyName: this.state.companyName,
+        const branch = {
+            branchCode: this.state.branchCode,
+            branchName: this.state.branchName,
             addressLine1: this.state.addressLine1,
             addressLine2: this.state.addressLine2,
             addressLine3: this.state.addressLine3,
-            contactNumber: this.state.contactNumber
+            contactNumber: this.state.contactNumber,
+            companyId: this.state.selectedCompany.id
         };
         let requestMethod = this.state.saveMode === "Update" ? "PUT" : "POST";
         fetch(
             API_URL +
             (this.state.saveMode === "Update"
-                ? "/saveCompany/" + this.state.id
-                : "/saveCompany"),
+                ? "/saveBranch/" + this.state.id
+                : "/saveBranch"),
             {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: "Bearer " + window.localStorage.getItem("access_token")
                 },
                 method: requestMethod,
-                body: JSON.stringify(company)
+                body: JSON.stringify(branch)
             }
         )
             .then(response => {
@@ -137,7 +161,7 @@ class CompanyForm extends React.Component {
                     this.disableFormElements();
                     this.props.reloadFunction();
                     this.props.showNotification("Saved Successfully", "success");
-                    this.props.getCompanyByLocation(response.headers.get("Location"));
+                    this.props.getBranchByLocation(response.headers.get("Location"));
                     this.props.disableSaveButtons(true);
                 } else {
                     console.log("Error Saving Data");
@@ -148,7 +172,92 @@ class CompanyForm extends React.Component {
                 this.props.showNotification("Error on saving data", "danger");
             });
     };
-    
+
+    selectCompany = (event, value) => {
+        if (value !== null) {
+            this.setState({
+                selectedCompany: value
+            });
+        } else {
+            this.setState({
+                selectedCompany: null
+            });
+        }
+    };
+
+
+    getSelectedCompany = id => {
+        fetch(API_URL + "/getCompanyById/" + id, {
+            headers: {
+                Authorization: "Bearer " + window.localStorage.getItem("access_token")
+            }
+        })
+            .then(response => {
+                return response.json();
+            })
+            .then(dataRetrived => {
+                // this.refs.toolBar.renderForm();
+                // this.refs.companyForm.setFormData(dataRetrived);
+                // const rawData = dataRetrived._embedded.companyGetList;
+                this.setState({
+                    companies: [dataRetrived],
+                    selectedCompanys: dataRetrived
+                });
+                console.log('dataRetrived', this.state.selectedCompanys.companyCode);
+            })
+            .catch(err => {
+                console.log("Error", err);
+            });
+    };
+
+    companyChange = event => {
+        if (event !== null) {
+            this.getCompany(
+                0,
+                10,
+                event.target.value !== undefined ? event.target.value : ""
+            );
+        }
+    };
+    getSearchParameters = (page, pageSize) => {
+        var parameterString = "page=" + page + "&size=" + pageSize;
+        return parameterString;
+    };
+    getCompany = (page, pageSize, searchValue) => {
+        this.setState({ pageSize: pageSize });
+        let searchParameters =
+            this.getSearchParameters(page, pageSize) + "&searchValue=" + searchValue;
+        fetch(API_URL + "/searchCompany?" + searchParameters, {
+            headers: {
+                Authorization: "Bearer " + window.localStorage.getItem("access_token")
+            }
+        })
+            .then(response => {
+                return response.json();
+            })
+            .then(dataRetrived => {
+                if (dataRetrived.page.totalPages !== 0) {
+                    const rawData = dataRetrived._embedded.companyGetList;
+                    this.setState({
+                        companies: rawData
+                    });
+                } else {
+                    this.setState({
+                        companies: []
+                    });
+                }
+                this.setState({
+                    pageSize: dataRetrived.page.size,
+                    totalPages: dataRetrived.page.totalPages,
+                    rowsCount: dataRetrived.page.totalElements,
+                    page: dataRetrived.page.number
+                });
+            })
+            .catch(err => {
+                // Do something for an error here
+                console.log("Error", err);
+            });
+    };
 
     render() {
         const imageContainer = {
@@ -184,14 +293,15 @@ class CompanyForm extends React.Component {
             >
                 <GridContainer>
                     <GridItem>
+
                         <FormControl required className={classes.formControl}>
-                            <h2>Company Name</h2>
+                            <h2>Branch Name</h2>
                             <TextValidator
                                 disabled={this.state.disableFormElements}
-                                name="companyName"
+                                name="branchName"
                                 validators={["required"]}
-                                errorMessages={["Company Name Required"]}
-                                value={this.state.companyName}
+                                errorMessages={["Branch Name Required"]}
+                                value={this.state.branchName}
                                 onChange={this.handleChange}
                                 margin="dense"
                                 InputLabelProps={{
@@ -200,15 +310,40 @@ class CompanyForm extends React.Component {
                             />
                         </FormControl>
                         <br />
+                        <FormControl required className={classes.formControl}>
+                            <h4>Company Name</h4>
+                            <Autocomplete
+                                value={this.state.selectedCompanys}
+                                disabled={this.state.disableFormElements}
+                                label="Company"
+                                id="company"
+                                options={this.state.companies}
+                                onInputChange={this.companyChange}
+                                getOptionLabel={option => option.companyName}
+                                onChange={(event, value) =>
+                                    this.selectCompany(event, value)
+                                }
+                                style={{ width: 300 }}
+                                renderInput={params => (
+                                    <TextField
+                                        {...params}
+                                        label=""
+                                        variant="outlined"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+                        </FormControl>
+                        <br />
 
                         <FormControl required className={classes.formControl}>
                             <TextValidator
-                                label="Company Code"
+                                label="Branch Code"
                                 disabled={this.state.disableFormElements}
-                                name="companyCode"
+                                name="branchCode"
                                 validators={["required"]}
-                                errorMessages={["Company Code Required"]}
-                                value={this.state.companyCode}
+                                errorMessages={["Branch Code Required"]}
+                                value={this.state.branchCode}
                                 onChange={this.handleChange}
                                 margin="dense"
                                 InputLabelProps={{
@@ -297,7 +432,7 @@ class CompanyForm extends React.Component {
                             </div>
                         </div>
                         <br />
-                       
+
                         <br />
                     </GridItem>
                 </GridContainer>
@@ -308,4 +443,4 @@ class CompanyForm extends React.Component {
     }
 }
 
-export default withStyles(customInputStyle)(CompanyForm);
+export default withStyles(customInputStyle)(BranchForm);

@@ -5,7 +5,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import Card from "components/Card/Card.jsx";
 import Table from "components/Table/Table.jsx";
 import CardBody from "components/Card/CardBody.jsx";
-import CustomerForm from "../Forms/CustomerForm";
+import BranchForm from "../Forms/BranchForm";
 import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
 import Snackbar from "components/Snackbar/Snackbar.jsx";
@@ -21,30 +21,23 @@ const styles = theme => ({
   }
 });
 
-class CustomerPage extends React.Component {
+class BranchPage extends React.Component {
   state = {
     searchDialogOpen: false,
     pageSize: 20,
     data: [],
-    customer: "",
     isOpenNotification: false,
     searchFields: [
       {
-        name: "customerName",
+        name: "branchName",
         type: "Text",
-        label: "Customer Name",
+        label: "Branch Name",
         data: []
       },
       {
-        name: "mobileNumer",
+        name: "contactNumber",
         type: "Text",
-        label: "Mobile Numer",
-        data: []
-      },
-      {
-        name: "nicNumber",
-        type: "Text",
-        label: "NIC Number",
+        label: "Contact Number",
         data: []
       }
     ]
@@ -64,7 +57,7 @@ class CustomerPage extends React.Component {
   };
 
   reloadData = () => {
-    this.getCustomer(0, this.state.pageSize, "");
+    this.getBranch(0, this.state.pageSize, "");
   };
   showNotification = (message, notificationclass) => {
     this.setState({
@@ -83,11 +76,11 @@ class CustomerPage extends React.Component {
     return parameterString;
   };
 
-  getCustomer = (page, pageSize, searchValue) => {
+  getBranch = (page, pageSize, searchValue) => {
     this.setState({ pageSize: pageSize });
     let searchParameters =
       this.getSearchParameters(page, pageSize) + searchValue;
-    fetch(API_URL + "/getAllCustomer?" + searchParameters, {
+    fetch(API_URL + "/getAllBranch?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -97,7 +90,7 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         if (dataRetrived.page.totalPages !== 0) {
-          const rawData = dataRetrived._embedded.customerGetList;
+          const rawData = dataRetrived._embedded.branchGetList;
           this.setState({
             data: rawData
           });
@@ -121,27 +114,27 @@ class CustomerPage extends React.Component {
   };
 
   submitForm = () => {
-    this.refs.customerForm.submitform();
+    this.refs.branchForm.submitform();
   };
 
   deleteSelected = () => {
-    this.refs.customerForm.deleteCustomer();
+    this.refs.branchForm.deleteBranch();
   };
   enableEditMode = () => {
-    this.refs.customerForm.enableEditMode();
-    this.refs.customerForm.enableFormElements();
+    this.refs.branchForm.enableEditMode();
+    this.refs.branchForm.enableFormElements();
   };
 
   enableAddMode = () => {
-    this.refs.customerForm.enableAddMode();
-    this.refs.customerForm.clearForm();
-    this.refs.customerForm.enableFormElements();
+    this.refs.branchForm.enableAddMode();
+    this.refs.branchForm.clearForm();
+    this.refs.branchForm.enableFormElements();
   };
   resetForm = () => {
-    this.refs.customerForm.resetForm();
+    this.refs.branchForm.resetForm();
   };
-  getSelectedCustomer = id => {
-    fetch(API_URL + "/getCustomerById/" + id, {
+  getSelectedBranch = id => {
+    fetch(API_URL + "/getBranchById/" + id, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -151,13 +144,13 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.customerForm.setFormData(dataRetrived);
+        this.refs.branchForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
       });
   };
-  getCustomerByLocation = location => {
+  getBranchByLocation = location => {
     fetch(location, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -168,7 +161,7 @@ class CustomerPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.customerForm.setFormData(dataRetrived);
+        this.refs.branchForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
@@ -178,14 +171,19 @@ class CustomerPage extends React.Component {
     this.refs.toolBar.disableSaveButtons();
   };
   getQueryParameter = searchValue => {
-    this.getCustomer(0, this.state.pageSize, searchValue);
+    this.getBranch(0, this.state.pageSize, searchValue);
   };
   render() {
     const tableHeaders = [
       {
-        id: "customerName",
+        id: "branchCode",
         numeric: false,
-        label: "Customer Name"
+        label: "Branch Code"
+      },
+      {
+        id: "branchName",
+        numeric: false,
+        label: "Branch Name"
       },
       {
         id: "addressLine1",
@@ -203,9 +201,9 @@ class CustomerPage extends React.Component {
         label: "Address Line3"
       },
       {
-        id: "mobileNumer",
+        id: "contactNumber",
         numeric: true,
-        label: "Mobile Numer"
+        label: "Contact Number"
       }
     ];
 
@@ -233,16 +231,16 @@ class CustomerPage extends React.Component {
                 tableHeaderColor="primary"
                 tableHead={tableHeaders}
                 tableData={this.state.data}
-                getDataFunction={this.getCustomer}
-                getSelectedRowFuction={this.getSelectedCustomer}
+                getDataFunction={this.getBranch}
+                getSelectedRowFuction={this.getSelectedBranch}
               />
             </CardBody>
             <CardBody id="form" style={{ display: "none" }}>
-              <CustomerForm
-                ref="customerForm"
+              <BranchForm
+                ref="branchForm"
                 reloadFunction={this.reloadData}
                 showNotification={this.showNotification}
-                getCustomerByLocation={this.getCustomerByLocation}
+                getBranchByLocation={this.getBranchByLocation}
                 disableSaveButtons={this.disableSaveButtons}
               />
             </CardBody>
@@ -263,7 +261,7 @@ class CustomerPage extends React.Component {
           onClose={this.handleSearchDialogClose}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Search Customer</DialogTitle>
+          <DialogTitle id="form-dialog-title">Search Branch</DialogTitle>
           <DialogContent>
             <SearchBar
               searchDialogCloseFunction={this.handleSearchDialogClose}
@@ -276,4 +274,4 @@ class CustomerPage extends React.Component {
     );
   }
 }
-export default withStyles(styles)(CustomerPage);
+export default withStyles(styles)(BranchPage);
