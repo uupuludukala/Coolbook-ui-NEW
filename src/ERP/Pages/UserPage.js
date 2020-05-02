@@ -5,7 +5,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import Card from "components/Card/Card.jsx";
 import Table from "components/Table/Table.jsx";
 import CardBody from "components/Card/CardBody.jsx";
-import ProductForm from "../Forms/ProductForm";
+import UserForm from "../Forms/UserForm";
 import MasterDataToolbar from "components/ToolBar/MasterDataToolbar.jsx";
 import { API_URL } from "../properties/applicationProperties";
 import Snackbar from "components/Snackbar/Snackbar.jsx";
@@ -21,49 +21,41 @@ const styles = theme => ({
   }
 });
 
-class ProductPage extends React.Component {
+class UserPage extends React.Component {
   state = {
     searchDialogOpen: false,
     pageSize: 20,
     data: [],
-    product: "",
+    user: "",
     isOpenNotification: false,
     searchFields: [
       {
-        name: "internalReference",
+        name: "userName",
         type: "Text",
-        label: "Internal Reference",
-        data: []
-      },
-      {
-        name: "productName",
-        type: "Text",
-        label: "Product Name",
+        label: "User Name",
         data: []
       }
     ]
   };
 
   openSearchDialog = () => {
-    console.log("searchDialogOpen called");
     this.setState({ searchDialogOpen: true });
   };
 
   closeNotification = () => {
-    console.log("Notification Function");
     this.setState({
       isOpenNotification: false
     });
   };
   getQueryParameter = searchValue => {
-    this.getProduct(0, this.state.pageSize, searchValue);
+    this.getUser(0, this.state.pageSize, searchValue);
   };
   handleSearchDialogClose = () => {
     this.setState({ searchDialogOpen: false });
   };
   
   reloadData = () => {
-    this.getProduct(0, this.state.pageSize,"");
+    this.getUser(0, this.state.pageSize,"");
   };
   showNotification = (message, notificationclass) => {
     this.setState({
@@ -81,12 +73,11 @@ class ProductPage extends React.Component {
     return parameterString;
   };
 
-  getProduct = (page, pageSize,searchValue) => {
-    console.log("Function called Today");
+  getUser = (page, pageSize,searchValue) => {
     this.setState({ pageSize: pageSize });
     let searchParameters = this.getSearchParameters(page, pageSize)+searchValue;
 
-    fetch(API_URL + "/getAllProduct?" + searchParameters, {
+    fetch(API_URL + "/getAllUser?" + searchParameters, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -96,7 +87,7 @@ class ProductPage extends React.Component {
       })
       .then(dataRetrived => {
         if (dataRetrived.page.totalPages !== 0) {
-          const rawData = dataRetrived._embedded.productGetList;
+          const rawData = dataRetrived._embedded.userGetList;
           this.setState({
             data: rawData
           });
@@ -114,33 +105,32 @@ class ProductPage extends React.Component {
         this.refs.toolBar.renderGrid();
       })
       .catch(err => {
-        // Do something for an error here
         console.log("Error", err);
       });
   };
 
   submitForm = () => {
-    this.refs.productForm.submitform();
+    this.refs.userForm.submitform();
   };
 
   deleteSelected = () => {
-    this.refs.productForm.deleteProduct();
+    this.refs.userForm.deleteUser();
   };
   enableEditMode = () => {
-    this.refs.productForm.enableEditMode();
-    this.refs.productForm.enableFormElements();
+    this.refs.userForm.enableEditMode();
+    this.refs.userForm.enableFormElements();
   };
 
   enableAddMode = () => {
-    this.refs.productForm.enableAddMode();
-    this.refs.productForm.clearForm();
-    this.refs.productForm.enableFormElements();
+    this.refs.userForm.enableAddMode();
+    this.refs.userForm.clearForm();
+    this.refs.userForm.enableFormElements();
   };
   resetForm = () => {
-    this.refs.productForm.resetForm();
+    this.refs.userForm.resetForm();
   };
-  getSelectedProduct = id => {
-    fetch(API_URL + "/getProductById/" + id, {
+  getSelectedUser = id => {
+    fetch(API_URL + "/getUserById/" + id, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
       }
@@ -150,13 +140,13 @@ class ProductPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.productForm.setFormData(dataRetrived);
+        this.refs.userForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
       });
   };
-  getProductByLocation = location => {
+  getUserByLocation = location => {
     fetch(location, {
       headers: {
         Authorization: "Bearer " + window.localStorage.getItem("access_token")
@@ -167,7 +157,7 @@ class ProductPage extends React.Component {
       })
       .then(dataRetrived => {
         this.refs.toolBar.renderForm();
-        this.refs.productForm.setFormData(dataRetrived);
+        this.refs.userForm.setFormData(dataRetrived);
       })
       .catch(err => {
         console.log("Error", err);
@@ -178,26 +168,16 @@ class ProductPage extends React.Component {
   };
 
   render() {
-    const tableHeaders = [
+    const tableHeaders = [      
       {
-        id: "internalReference",
+        id: "userName",
         numeric: false,
-        label: "Internal Reference"
+        label: "User Name"
       },
       {
-        id: "productName",
-        numeric: false,
-        label: "Name"
-      },
-      {
-        id: "salePrice",
+        id: "branch",
         numeric: true,
-        label: "Sale Price"
-      },
-      {
-        id: "cost",
-        numeric: true,
-        label: "Cost"
+        label: "Branch"
       }
     ];
 
@@ -225,16 +205,16 @@ class ProductPage extends React.Component {
                 tableHeaderColor="primary"
                 tableHead={tableHeaders}
                 tableData={this.state.data}
-                getDataFunction={this.getProduct}
-                getSelectedRowFuction={this.getSelectedProduct}
+                getDataFunction={this.getUser}
+                getSelectedRowFuction={this.getSelectedUser}
               />
             </CardBody>
             <CardBody id="form" style={{ display: "none" }}>
-              <ProductForm
-                ref="productForm"
+              <UserForm
+                ref="userForm"
                 reloadFunction={this.reloadData}
                 showNotification={this.showNotification}
-                getProductByLocation={this.getProductByLocation}
+                getUserByLocation={this.getUserByLocation}
                 disableSaveButtons={this.disableSaveButtons}
               />
             </CardBody>
@@ -255,7 +235,7 @@ class ProductPage extends React.Component {
           onClose={this.handleSearchDialogClose}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Search Product</DialogTitle>
+          <DialogTitle id="form-dialog-title">Search User</DialogTitle>
           <DialogContent>
             <SearchBar
               searchDialogCloseFunction={this.handleSearchDialogClose}
@@ -268,4 +248,4 @@ class ProductPage extends React.Component {
     );
   }
 }
-export default withStyles(styles)(ProductPage);
+export default withStyles(styles)(UserPage);

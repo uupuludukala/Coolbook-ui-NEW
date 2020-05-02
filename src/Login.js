@@ -165,7 +165,7 @@ class Login extends React.Component {
         </div>
         <Box mt={5}>
           <Typography variant="body2" color="textSecondary" align="center">
-            {"Cool Book For"}
+            {"Cool Book For "}
             <Link color="inherit" href="https://furnico.lk/">
               Furnico
             </Link>

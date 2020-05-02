@@ -22,14 +22,7 @@ class BranchForm extends React.Component {
 
     state = {
         companies: [],
-        selectedCompanys: {
-            branchCode: "",
-            companyName: "",
-            addressLine1: "",
-            addressLine2: "",
-            addressLine3: "",
-            contactNumber: "",
-            companyId: ""
+        selectedCompany: {           
         }
     };
 
@@ -74,14 +67,14 @@ class BranchForm extends React.Component {
 
     clearForm = () => {
         this.setState({
-            companyCode: "",
-            companyName: "",
+            branchCode: "",
+            branchName: "",
             addressLine1: "",
             addressLine2: "",
             addressLine3: "",
             contactNumber: "",
             companies: [],
-            selectedCompanys: {
+            selectedCompany: {
                 branchCode: "",
                 companyName: "",
                 addressLine1: "",
@@ -132,6 +125,7 @@ class BranchForm extends React.Component {
     };
 
     save = () => {
+        console.log("Save Function Called");
         const branch = {
             branchCode: this.state.branchCode,
             branchName: this.state.branchName,
@@ -201,9 +195,9 @@ class BranchForm extends React.Component {
                 // const rawData = dataRetrived._embedded.companyGetList;
                 this.setState({
                     companies: [dataRetrived],
-                    selectedCompanys: dataRetrived
+                    selectedCompany: dataRetrived
                 });
-                console.log('dataRetrived', this.state.selectedCompanys.companyCode);
+                console.log('dataRetrived', this.state.selectedCompany.companyCode);
             })
             .catch(err => {
                 console.log("Error", err);
@@ -313,7 +307,7 @@ class BranchForm extends React.Component {
                         <FormControl required className={classes.formControl}>
                             <h4>Company Name</h4>
                             <Autocomplete
-                                value={this.state.selectedCompanys}
+                                value={this.state.selectedCompany}
                                 disabled={this.state.disableFormElements}
                                 label="Company"
                                 id="company"
@@ -420,21 +414,7 @@ class BranchForm extends React.Component {
                             />
                         </FormControl>
                         <br />
-                    </GridItem>
-                    <GridItem>
-                        <div style={imageContainer}>
-                            <div>
-                                {this.state.imageUrl === "" ? (
-                                    <Camera style={imageViewer} />
-                                ) : (
-                                        <img style={imageViewer} src={this.state.imageUrl} />
-                                    )}
-                            </div>
-                        </div>
-                        <br />
-
-                        <br />
-                    </GridItem>
+                    </GridItem>                   
                 </GridContainer>
             </ValidatorForm>
             //   </GridItem>

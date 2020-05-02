@@ -11,6 +11,7 @@ import UserProfile from "views/UserProfile/UserProfile.jsx";
 import Customer from "ERP/Pages/CustomerPage.js";
 import Company from "ERP/Pages/CompanyPage.js";
 import Branch from "ERP/Pages/BranchPage.js";
+import User from "ERP/Pages/UserPage.js";
 
 import Product from "ERP/Pages/ProductPage.js";
 import POS from "ERP/POS/PosPage.js";
@@ -119,6 +120,14 @@ const dashBoardRoutes = [
     name: "Orders",
     icon: LibraryBooks,
     component: Orders,
+    layout: "/admin"
+  }
+  ,
+  {
+    path: "/users",
+    name: "Users",
+    icon: LibraryBooks,
+    component: User,
     layout: "/admin"
   }
 ];

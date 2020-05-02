@@ -34,13 +34,13 @@ const Sidebar = ({ ...props }) => {
           });
         } else {
           listItemClasses = classNames({
-            [" " + classes[color]]: activeRoute(prop.layout + prop.path)
+            [" " + classes[color]]:  (prop.layout + prop.path)
           });
         }
         const whiteFontClasses = classNames({
           [" " + classes.whiteFont]: activeRoute(prop.layout + prop.path)
         });
-        return (
+        return ( 
           <NavLink
             to={prop.layout + prop.path}
             className={activePro + classes.item}
@@ -70,6 +70,30 @@ const Sidebar = ({ ...props }) => {
                 })}
                 disableTypography={true}
               />
+              <ListItem button className={classes.itemLink + listItemClasses}>
+              {typeof prop.icon === "string" ? (
+                <Icon
+                  className={classNames(classes.itemIcon, whiteFontClasses, {
+                    [classes.itemIconRTL]: props.rtlActive
+                  })}
+                >
+                  {prop.icon}
+                </Icon>
+              ) : (
+                <prop.icon
+                  className={classNames(classes.itemIcon, whiteFontClasses, {
+                    [classes.itemIconRTL]: props.rtlActive
+                  })}
+                />
+              )}
+              <ListItemText
+                primary={props.rtlActive ? prop.rtlName : prop.name}
+                className={classNames(classes.itemText, whiteFontClasses, {
+                  [classes.itemTextRTL]: props.rtlActive
+                })}
+                disableTypography={true}
+              />
+            </ListItem>
             </ListItem>
           </NavLink>
         );
