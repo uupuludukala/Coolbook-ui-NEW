@@ -22,7 +22,7 @@
     "react-google-maps": "9.4.5",
     "react-material-ui-form-validator": "^2.0.9",
     "react-number-format": "^4.3.1",
-    "react-router-dom": "4.3.1",
+    "react-router-dom": "7.5.2",
     "react-scripts": "2.1.5",
     "react-swipeable-views": "0.13.1",
     "react-to-print": "^2.5.0"
